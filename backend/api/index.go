@@ -52,7 +52,7 @@ func initRouter() {
 			auth.POST("/signup", handlers.Signup)
 			auth.POST("/verify-otp", handlers.VerifyOTP)
 			auth.POST("/login", handlers.Login)
-			auth.POST("/verify-login-otp", handlers.VerifyLoginOTP)
+			auth.POST("/resend-otp", handlers.ResendOTP)
 		}
 
 		// Blockchain public routes
@@ -79,7 +79,7 @@ func initRouter() {
 		// Wallet routes
 		wallet := protected.Group("/wallet")
 		{
-			wallet.GET("/balance", handlers.GetBalance)
+			wallet.GET("/balance", handlers.GetMyBalance)
 			wallet.GET("/info", handlers.GetMyWalletInfo)
 			wallet.GET("/utxos", handlers.GetMyUTXOs)
 		}
@@ -103,7 +103,7 @@ func initRouter() {
 		reports := protected.Group("/reports")
 		{
 			reports.GET("/monthly", handlers.GetMonthlyReport)
-			reports.GET("/zakat", handlers.GetZakatHistory)
+			reports.GET("/zakat", handlers.GetZakatReport)
 			reports.GET("/stats", handlers.GetTransactionStats)
 		}
 
@@ -111,7 +111,6 @@ func initRouter() {
 		system := protected.Group("/system")
 		{
 			system.GET("/logs", handlers.GetSystemLogs)
-			system.GET("/transaction-logs", handlers.GetTransactionLogs)
 		}
 	}
 }
