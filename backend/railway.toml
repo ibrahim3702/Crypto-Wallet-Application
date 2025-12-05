@@ -1,0 +1,15 @@
+runtime: go1.21
+
+build:
+  builder: NIXPACKS
+  buildCommand: go build -o main .
+  
+services:
+  - type: web
+    name: crypto-wallet-backend
+    env: production
+    buildCommand: go build -o main .
+    startCommand: ./main
+    healthcheckPath: /api/health
+    healthcheckTimeout: 30
+    autoDeploy: true
