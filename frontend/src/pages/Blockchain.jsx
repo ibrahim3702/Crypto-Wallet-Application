@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { blockchainAPI } from '../api';
-import { Blocks, Loader, Package } from 'lucide-react';
+import { Blocks, Loader, Package, X, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function Blockchain() {
     const [blocks, setBlocks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedBlock, setSelectedBlock] = useState(null);
+    const [showMineModal, setShowMineModal] = useState(false);
+    const [mining, setMining] = useState(false);
+    const [mineResult, setMineResult] = useState(null);
 
     useEffect(() => {
         fetchBlockchain();
@@ -22,19 +25,35 @@ export default function Blockchain() {
         }
     };
 
-    const handleMine = async () => {
-        if (!confirm('Mine pending transactions into a new block?')) return;
+    const handleMineClick = () => {
+        setShowMineModal(true);
+        setMineResult(null);
+    };
 
-        setLoading(true);
+    const confirmMine = async () => {
+        setMining(true);
+        setMineResult(null);
         try {
-            await blockchainAPI.mine();
-            alert('Block mined successfully!');
+            const response = await blockchainAPI.mine();
+            setMineResult({
+                success: true,
+                message: 'Block mined successfully!',
+                data: response.data
+            });
             fetchBlockchain();
         } catch (error) {
-            alert(error.response?.data?.error || 'Mining failed');
+            setMineResult({
+                success: false,
+                message: error.response?.data?.error || 'Mining failed'
+            });
         } finally {
-            setLoading(false);
+            setMining(false);
         }
+    };
+
+    const closeMineModal = () => {
+        setShowMineModal(false);
+        setMineResult(null);
     };
 
     if (loading) {
@@ -50,12 +69,10 @@ export default function Blockchain() {
             <div className="max-w-7xl mx-auto px-4">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold text-white">Blockchain Explorer</h1>
-                    <button onClick={handleMine} className="btn-primary">
+                    <button onClick={handleMineClick} className="btn-primary">
                         Mine Block
                     </button>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4">
+                </div>                <div className="grid grid-cols-1 gap-4">
                     {blocks.map((block, index) => (
                         <div key={block.index} className="card hover:bg-gray-700/50 transition cursor-pointer" onClick={() => setSelectedBlock(block)}>
                             <div className="flex items-start justify-between">
@@ -116,6 +133,68 @@ export default function Blockchain() {
                             <button onClick={() => setSelectedBlock(null)} className="mt-4 btn-secondary w-full">
                                 Close
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {showMineModal && (
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={closeMineModal}>
+                        <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-2xl font-bold text-white">Mine New Block</h2>
+                                <button onClick={closeMineModal} className="text-gray-400 hover:text-white">
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            {!mineResult ? (
+                                <>
+                                    <p className="text-gray-300 mb-6">
+                                        Are you sure you want to mine a new block? This will include all pending transactions and you will receive a mining reward of 50 CW.
+                                    </p>
+                                    <div className="flex space-x-3">
+                                        <button
+                                            onClick={confirmMine}
+                                            disabled={mining}
+                                            className="btn-primary flex-1 flex items-center justify-center"
+                                        >
+                                            {mining ? (
+                                                <>
+                                                    <Loader className="w-5 h-5 mr-2 animate-spin" />
+                                                    Mining...
+                                                </>
+                                            ) : (
+                                                'Confirm Mine'
+                                            )}
+                                        </button>
+                                        <button onClick={closeMineModal} className="btn-secondary flex-1">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className={`flex items-center p-4 rounded-lg mb-4 ${mineResult.success ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'
+                                        }`}>
+                                        {mineResult.success ? (
+                                            <CheckCircle className="w-6 h-6 mr-3" />
+                                        ) : (
+                                            <AlertCircle className="w-6 h-6 mr-3" />
+                                        )}
+                                        <div>
+                                            <p className="font-semibold">{mineResult.message}</p>
+                                            {mineResult.success && mineResult.data && (
+                                                <p className="text-sm mt-1">
+                                                    Block #{mineResult.data.block.index} | {mineResult.data.transactions_count} transactions
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <button onClick={closeMineModal} className="btn-primary w-full">
+                                        Close
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 )}

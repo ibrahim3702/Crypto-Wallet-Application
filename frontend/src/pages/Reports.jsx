@@ -21,10 +21,11 @@ export default function Reports() {
             ]);
 
             setMonthly(monthlyRes.data);
-            setZakatHistory(zakatRes.data.zakat_records);
+            setZakatHistory(zakatRes.data.zakat_records || []);
             setStats(statsRes.data);
         } catch (error) {
             console.error('Error fetching reports:', error);
+            setZakatHistory([]);
         } finally {
             setLoading(false);
         }
@@ -110,7 +111,7 @@ export default function Reports() {
 
                     <div className="card">
                         <h2 className="text-xl font-bold text-white mb-4">Zakat History</h2>
-                        {zakatHistory.length === 0 ? (
+                        {!zakatHistory || zakatHistory.length === 0 ? (
                             <p className="text-gray-400 text-center py-8">No zakat deductions yet</p>
                         ) : (
                             <div className="space-y-2 max-h-64 overflow-y-auto">

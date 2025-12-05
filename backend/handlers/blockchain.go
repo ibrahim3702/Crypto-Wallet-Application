@@ -71,12 +71,7 @@ func MineBlock(c *gin.Context) {
 		return
 	}
 
-	if len(pendingTxs) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No pending transactions to mine"})
-		return
-	}
-
-	// Extract transactions
+	// Extract and validate transactions
 	var transactions []models.Transaction
 	for _, ptx := range pendingTxs {
 		// Validate transaction
@@ -92,10 +87,30 @@ func MineBlock(c *gin.Context) {
 		transactions = append(transactions, ptx.Transaction)
 	}
 
+	// Check if there are any valid transactions to mine
 	if len(transactions) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No valid transactions to mine"})
 		return
 	}
+
+	// Create coinbase transaction (mining reward)
+	coinbaseTx := models.Transaction{
+		ID:         fmt.Sprintf("coinbase_%d_%d", time.Now().Unix(), len(transactions)),
+		SenderID:   "coinbase",
+		ReceiverID: userID,
+		Amount:     config.AppConfig.MiningReward,
+		Timestamp:  time.Now().Unix(),
+		Type:       "mining_reward",
+		Vin:        []models.TXInput{},
+		Vout: []models.TXOutput{
+			{
+				Value:      config.AppConfig.MiningReward,
+				PubKeyHash: walletID,
+				IsSpent:    false,
+			},
+		},
+	}
+	transactions = append(transactions, coinbaseTx)
 
 	// Get last block
 	lastBlock, err := db.GetLastBlock()

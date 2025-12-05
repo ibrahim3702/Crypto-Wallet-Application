@@ -13,9 +13,10 @@ export default function TransactionHistory() {
     const fetchTransactions = async () => {
         try {
             const response = await transactionAPI.getHistory();
-            setTransactions(response.data.transactions);
+            setTransactions(response.data.transactions || []);
         } catch (error) {
             console.error('Error fetching transactions:', error);
+            setTransactions([]);
         } finally {
             setLoading(false);
         }
@@ -35,7 +36,7 @@ export default function TransactionHistory() {
                 <h1 className="text-3xl font-bold text-white mb-8">Transaction History</h1>
 
                 <div className="card">
-                    {transactions.length === 0 ? (
+                    {!transactions || transactions.length === 0 ? (
                         <div className="text-center py-12">
                             <Clock className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                             <p className="text-gray-400">No transactions yet</p>
