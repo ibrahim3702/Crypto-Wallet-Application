@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -31,7 +31,7 @@ export const userAPI = {
     getProfile: () => api.get('/user/profile'),
     updateProfile: (data) => api.put('/user/profile', data),
     getPrivateKey: () => api.get('/user/private-key'),
-    searchByEmail: (email) => axios.get(`http://localhost:8080/api/user/search?email=${encodeURIComponent(email)}`),
+    searchByEmail: (email) => api.get(`/user/search?email=${encodeURIComponent(email)}`),
 };
 
 // Wallet APIs
