@@ -99,9 +99,10 @@ func Signup(c *gin.Context) {
 	services.LogOTPGenerated(user.Email, ipAddress)
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message":   "User created successfully. Please verify your email with the OTP sent.",
-		"wallet_id": walletID,
-		"email":     req.Email,
+		"message":     "User created successfully. Please verify your email with the OTP sent.",
+		"wallet_id":   walletID,
+		"email":       req.Email,
+		"private_key": privateKeyStr, // Return unencrypted private key for user to save
 	})
 }
 
@@ -410,8 +411,42 @@ func GetPrivateKey(c *gin.Context) {
 		return
 	}
 
+	// Decrypt private key using user's email as passphrase
+	decryptedPrivateKey, err := crypto.DecryptPrivateKey(user.EncryptedPrivateKey, email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decrypt private key"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"encrypted_private_key": user.EncryptedPrivateKey,
-		"note":                  "Decrypt this with your email as the passphrase",
+		"private_key": decryptedPrivateKey,
+	})
+}
+
+// SearchUserByEmail searches for a user by email (public endpoint for sending money)
+func SearchUserByEmail(c *gin.Context) {
+	email := c.Query("email")
+	if email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email parameter is required"})
+		return
+	}
+
+	// Try to find user by email (case-insensitive)
+	user, err := db.GetUserByEmail(email)
+	if err != nil {
+		// Log for debugging
+		services.LogSystemEvent("user_search_failed", "", map[string]interface{}{
+			"email": email,
+			"error": err.Error(),
+		}, "info")
+		c.JSON(http.StatusNotFound, gin.H{"error": "User with this email not found. Please verify the email address."})
+		return
+	}
+
+	// Return only public information
+	c.JSON(http.StatusOK, gin.H{
+		"wallet_id": user.WalletID,
+		"full_name":  user.FullName,
+		"email":      user.Email,
 	})
 }

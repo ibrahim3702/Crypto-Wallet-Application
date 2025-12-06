@@ -74,6 +74,9 @@ func main() {
 		public.GET("/wallet/balance/:walletId", handlers.GetWalletBalance)
 		public.GET("/wallet/info/:walletId", handlers.GetWalletInfo)
 
+		// Public user search
+		public.GET("/user/search", handlers.SearchUserByEmail)
+
 		// Public transaction lookup
 		public.GET("/transaction/:txId", handlers.GetTransactionByID)
 		public.GET("/transactions/pending", handlers.GetPendingTransactions)

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import { Wallet, LogOut, User, Send, Clock, BarChart3, Blocks } from 'lucide-react';
+import { Wallet, LogOut, User, Send, Clock, BarChart3, Blocks, Package, BadgeDollarSign } from 'lucide-react';
 
 export default function Navbar() {
     const { user, logout } = useAuth();
@@ -17,7 +17,7 @@ export default function Navbar() {
                 <div className="flex justify-between h-16">
                     <div className="flex items-center space-x-8">
                         <Link to="/dashboard" className="flex items-center space-x-2">
-                            <Wallet className="w-8 h-8 text-indigo-500" />
+                            <BadgeDollarSign className="w-8 h-8 text-indigo-500" />
                             <span className="text-xl font-bold text-white">CryptoWallet</span>
                         </Link>
 
@@ -37,6 +37,10 @@ export default function Navbar() {
                             <Link to="/blockchain" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1">
                                 <Blocks className="w-4 h-4" />
                                 <span>Blockchain</span>
+                            </Link>
+                            <Link to="/utxos" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1">
+                                <Package className="w-4 h-4" />
+                                <span>UTXOs</span>
                             </Link>
                             <Link to="/reports" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1">
                                 <BarChart3 className="w-4 h-4" />

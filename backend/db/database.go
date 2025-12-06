@@ -6,6 +6,7 @@ import (
 	"crypto-wallet/models"
 	"errors"
 	"log"
+	"regexp"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -128,7 +129,11 @@ func CreateUser(user *models.User) error {
 
 func GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
-	err := UsersCollection.FindOne(context.Background(), bson.M{"email": email}).Decode(&user)
+	// Case-insensitive email search using regex
+	// Escape special regex characters in email
+	escapedEmail := regexp.QuoteMeta(email)
+	filter := bson.M{"email": bson.M{"$regex": "^" + escapedEmail + "$", "$options": "i"}}
+	err := UsersCollection.FindOne(context.Background(), filter).Decode(&user)
 	if err != nil {
 		return nil, err
 	}

@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { walletAPI, transactionAPI, blockchainAPI } from '../api';
-import { Wallet, Send, Clock, TrendingUp, ArrowUpRight, ArrowDownLeft, Loader } from 'lucide-react';
+import { Send, Download, TrendingUp, ArrowUpRight, ArrowDownLeft, Loader, Activity } from 'lucide-react';
+import BalanceChart from '../components/BalanceChart';
 
 export default function Dashboard() {
+    const navigate = useNavigate();
     const [balance, setBalance] = useState(0);
     const [recentTransactions, setRecentTransactions] = useState([]);
     const [stats, setStats] = useState(null);
+    const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -21,9 +24,14 @@ export default function Dashboard() {
                 blockchainAPI.getStats(),
             ]);
 
-            setBalance(balanceRes.data.balance);
-            setRecentTransactions(txRes.data.transactions.slice(0, 5));
+            setBalance(balanceRes.data.balance || 0);
+            const allTransactions = txRes.data.transactions || [];
+            setRecentTransactions(allTransactions.slice(0, 3));
             setStats(statsRes.data);
+
+            // Generate balance history for last 24 hours
+            const balanceHistory = generateBalanceHistory(allTransactions, balanceRes.data.balance || 0);
+            setChartData(balanceHistory);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
         } finally {
@@ -31,127 +39,155 @@ export default function Dashboard() {
         }
     };
 
+    const generateBalanceHistory = (transactions, currentBalance) => {
+        const now = new Date();
+        const history = [];
+
+        // Sort transactions by timestamp (oldest first)
+        const sortedTxs = [...transactions]
+            .filter(tx => tx.timestamp)
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        // Calculate balance at each hour for last 24 hours
+        for (let i = 23; i >= 0; i--) {
+            const hourDate = new Date(now.getTime() - i * 60 * 60 * 1000);
+            const hourStart = hourDate.getTime();
+            const hourEnd = hourStart + 60 * 60 * 1000;
+
+            // Calculate balance at this hour by working backwards from current balance
+            let balanceAtHour = currentBalance;
+            sortedTxs.forEach(tx => {
+                const txTime = new Date(tx.timestamp).getTime();
+                if (txTime >= hourEnd) {
+                    // Transaction happened after this hour, subtract its effect
+                    balanceAtHour -= tx.amount;
+                }
+            });
+
+            history.push({
+                time: hourDate.getHours() + ':00',
+                value: Math.max(0, balanceAtHour),
+                date: hourDate
+            });
+        }
+
+        return history;
+    };
+
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-                <Loader className="w-12 h-12 text-indigo-500 animate-spin" />
+            <div className="min-h-screen bg-[#0A0E27] flex items-center justify-center">
+                <Loader className="w-12 h-12 text-blue-500 animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-[#0A0E27] py-8 px-4">
+            <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold text-white mb-8">Dashboard</h1>
 
                 {/* Balance Card */}
-                <div className="card mb-8 bg-gradient-to-br from-indigo-600 to-purple-600">
-                    <div className="flex items-center justify-between">
+                <div className="card mb-8">
+                    <div className="flex justify-between items-start mb-6">
                         <div>
-                            <p className="text-indigo-200 text-sm font-semibold mb-2">Total Balance</p>
-                            <h2 className="text-4xl font-bold text-white">{balance.toFixed(2)} CW</h2>
+                            <p className="text-gray-400 text-sm mb-2">Total Balance</p>
+                            <h2 className="text-4xl font-bold text-white mb-1">{balance.toFixed(4)} BTC</h2>
+                            <p className="text-gray-400 text-sm">${(balance * 50123.45).toFixed(2)} USD</p>
                         </div>
-                        <Wallet className="w-16 h-16 text-indigo-200" />
+                        <div className="flex items-center text-green-500 text-sm">
+                            <TrendingUp className="w-4 h-4 mr-1" />
+                            <span>+2.5%</span>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => navigate('/send')}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition"
+                        >
+                            <Send className="w-5 h-5" />
+                            <span>Send</span>
+                        </button>
+                        <button className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition border border-gray-700">
+                            <Download className="w-5 h-5" />
+                            <span>Receive</span>
+                        </button>
                     </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <Link to="/send" className="card hover:bg-gray-700 transition cursor-pointer">
-                        <div className="flex items-center space-x-4">
-                            <div className="bg-indigo-500 p-3 rounded-lg">
-                                <Send className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                                <h3 className="text-white font-semibold">Send Money</h3>
-                                <p className="text-gray-400 text-sm">Transfer to another wallet</p>
-                            </div>
-                        </div>
-                    </Link>
-
-                    <Link to="/transactions" className="card hover:bg-gray-700 transition cursor-pointer">
-                        <div className="flex items-center space-x-4">
-                            <div className="bg-green-500 p-3 rounded-lg">
-                                <Clock className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                                <h3 className="text-white font-semibold">Transactions</h3>
-                                <p className="text-gray-400 text-sm">View your history</p>
-                            </div>
-                        </div>
-                    </Link>
-
-                    <Link to="/reports" className="card hover:bg-gray-700 transition cursor-pointer">
-                        <div className="flex items-center space-x-4">
-                            <div className="bg-purple-500 p-3 rounded-lg">
-                                <TrendingUp className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                                <h3 className="text-white font-semibold">Reports</h3>
-                                <p className="text-gray-400 text-sm">View analytics</p>
-                            </div>
-                        </div>
-                    </Link>
+                {/* Balance Chart */}
+                <div className="card mb-8">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-white font-semibold">Balance Chart (24h)</h3>
+                        <Activity className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <div className="mt-4">
+                        <BalanceChart data={chartData} />
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Recent Transactions */}
-                    <div className="card">
-                        <h3 className="text-xl font-bold text-white mb-4">Recent Transactions</h3>
-                        {recentTransactions.length === 0 ? (
-                            <p className="text-gray-400 text-center py-8">No transactions yet</p>
-                        ) : (
-                            <div className="space-y-3">
-                                {recentTransactions.map((tx) => (
-                                    <div key={tx.id} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                {/* Recent Activity */}
+                <div className="card">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-white font-semibold text-lg">Recent Activity</h3>
+                        <Link to="/transactions" className="text-blue-500 hover:text-blue-400 text-sm">
+                            View All
+                        </Link>
+                    </div>
+
+                    {recentTransactions.length === 0 ? (
+                        <div className="text-center py-12 text-gray-400">
+                            No transactions yet
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {recentTransactions.map((tx, index) => {
+                                const isReceived = tx.action === 'received' || tx.action === 'mined';
+                                return (
+                                    <div key={index} className="flex items-center justify-between p-4 bg-[#1A1F3A] rounded-lg hover:bg-[#1F2544] transition">
                                         <div className="flex items-center space-x-3">
-                                            {tx.action === 'sent' ? (
-                                                <ArrowUpRight className="w-5 h-5 text-red-400" />
-                                            ) : (
-                                                <ArrowDownLeft className="w-5 h-5 text-green-400" />
-                                            )}
+                                            <div className={`p-2 rounded-full ${isReceived ? 'bg-green-900/30' : 'bg-red-900/30'}`}>
+                                                {isReceived ? (
+                                                    <ArrowDownLeft className="w-5 h-5 text-green-500" />
+                                                ) : (
+                                                    <ArrowUpRight className="w-5 h-5 text-red-500" />
+                                                )}
+                                            </div>
                                             <div>
-                                                <p className="text-white font-medium capitalize">{tx.action}</p>
-                                                <p className="text-gray-400 text-xs">{new Date(tx.timestamp).toLocaleDateString()}</p>
+                                                <p className="text-white font-medium">
+                                                    {isReceived ? 'Received from' : 'Sent to'}
+                                                </p>
+                                                <p className="text-gray-400 text-sm">
+                                                    {tx.counterparty?.substring(0, 10)}...
+                                                </p>
                                             </div>
                                         </div>
-                                        <p className={`font-semibold ${tx.action === 'sent' ? 'text-red-400' : 'text-green-400'}`}>
-                                            {tx.action === 'sent' ? '' : '+'}{tx.amount.toFixed(2)} CW
-                                        </p>
+                                        <div className="text-right">
+                                            <p className={`font-semibold ${isReceived ? 'text-green-500' : 'text-red-500'}`}>
+                                                {isReceived ? '+' : ''}{Math.abs(tx.amount || 0).toFixed(2)} BTC
+                                            </p>
+                                            <p className="text-gray-400 text-sm">
+                                                ${(Math.abs(tx.amount || 0) * 25001.72).toFixed(2)}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${tx.status === 'success'
+                                                ? 'bg-green-900/30 text-green-400'
+                                                : 'bg-yellow-900/30 text-yellow-400'
+                                                }`}>
+                                                {tx.status === 'success' ? 'Confirmed' : 'Pending'}
+                                            </span>
+                                        </div>
+                                        <Link to="/transactions" className="text-blue-500 hover:text-blue-400 text-sm font-medium">
+                                            View
+                                        </Link>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Blockchain Stats */}
-                    <div className="card">
-                        <h3 className="text-xl font-bold text-white mb-4">Blockchain Stats</h3>
-                        {stats && (
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Total Blocks</span>
-                                    <span className="text-white font-semibold">{stats.total_blocks}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Total Transactions</span>
-                                    <span className="text-white font-semibold">{stats.total_transactions}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Pending Transactions</span>
-                                    <span className="text-yellow-400 font-semibold">{stats.pending_transactions}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Total Users</span>
-                                    <span className="text-white font-semibold">{stats.total_users}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">PoW Difficulty</span>
-                                    <span className="text-white font-semibold">{stats.pow_difficulty}</span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

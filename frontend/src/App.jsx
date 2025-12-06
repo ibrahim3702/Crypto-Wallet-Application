@@ -9,6 +9,7 @@ import TransactionHistory from './pages/TransactionHistory';
 import Blockchain from './pages/Blockchain';
 import Profile from './pages/Profile';
 import Reports from './pages/Reports';
+import UTXOs from './pages/UTXOs';
 import './index.css';
 
 const PrivateRoute = ({ children }) => {
@@ -31,6 +32,7 @@ function AppContent() {
                     <Route path="/send" element={<PrivateRoute><SendMoney /></PrivateRoute>} />
                     <Route path="/transactions" element={<PrivateRoute><TransactionHistory /></PrivateRoute>} />
                     <Route path="/blockchain" element={<PrivateRoute><Blockchain /></PrivateRoute>} />
+                    <Route path="/utxos" element={<PrivateRoute><UTXOs /></PrivateRoute>} />
                     <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
                     <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
 

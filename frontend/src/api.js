@@ -31,6 +31,7 @@ export const userAPI = {
     getProfile: () => api.get('/user/profile'),
     updateProfile: (data) => api.put('/user/profile', data),
     getPrivateKey: () => api.get('/user/private-key'),
+    searchByEmail: (email) => axios.get(`http://localhost:8080/api/user/search?email=${encodeURIComponent(email)}`),
 };
 
 // Wallet APIs

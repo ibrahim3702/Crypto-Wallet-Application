@@ -67,7 +67,7 @@ export default function TransactionHistory() {
                                                 </div>
                                             </td>
                                             <td className={`py-3 px-4 font-semibold ${tx.action === 'sent' ? 'text-red-400' : 'text-green-400'}`}>
-                                                {tx.action === 'sent' ? '' : '+'}{tx.amount.toFixed(2)} CW
+                                                {tx.action === 'sent' ? '-' : '+'}{Math.abs(tx.amount).toFixed(2)} CW
                                             </td>
                                             <td className="py-3 px-4 text-gray-400 font-mono text-xs">
                                                 {tx.counterparty ? `${tx.counterparty.substring(0, 12)}...` : 'N/A'}

@@ -3,33 +3,40 @@
 @tailwind utilities;
 
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     line-height: 1.5;
     font-weight: 400;
-    color-scheme: light dark;
-    background-color: #0f172a;
-    color: #ffffff;
 }
 
 body {
     margin: 0;
     min-height: 100vh;
+    background: #1337ec;
+    color: #ffffff;
 }
 
 @layer components {
     .btn-primary {
-        @apply bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200;
+        @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg;
     }
 
     .btn-secondary {
-        @apply bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200;
+        @apply bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 border border-gray-700;
     }
 
     .card {
-        @apply bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700;
+        @apply bg-[#161B33] rounded-xl shadow-xl p-6 border border-gray-800;
     }
 
     .input-field {
-        @apply w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500;
+        @apply w-full bg-[#1A1F3A] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+    }
+
+    .sidebar-link {
+        @apply flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-blue-600 hover:text-white transition duration-200 cursor-pointer;
+    }
+
+    .sidebar-link-active {
+        @apply flex items-center space-x-3 px-4 py-3 rounded-lg bg-blue-600 text-white transition duration-200 cursor-pointer;
     }
 }

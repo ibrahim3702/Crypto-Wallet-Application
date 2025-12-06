@@ -138,10 +138,34 @@ export default function Signup() {
                     ) : (
                         <div>
                             {walletInfo && (
-                                <div className="bg-indigo-500/10 border border-indigo-500 rounded-lg p-4 mb-4">
-                                    <p className="text-indigo-400 text-sm font-semibold mb-2">Your Wallet ID:</p>
-                                    <p className="text-white text-xs break-all font-mono">{walletInfo.wallet_id}</p>
-                                </div>
+                                <>
+                                    <div className="bg-yellow-500/10 border border-yellow-500 rounded-lg p-4 mb-4">
+                                        <p className="text-yellow-400 text-sm font-semibold mb-2">⚠️ IMPORTANT - Save Your Private Key!</p>
+                                        <p className="text-yellow-300 text-xs mb-3">
+                                            This is your ONLY chance to see your private key. Save it securely - you'll need it to send transactions.
+                                        </p>
+                                        <p className="text-gray-400 text-xs mb-1">Private Key:</p>
+                                        <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                                            <p className="text-white text-xs break-all font-mono select-all">
+                                                {walletInfo.private_key || walletInfo.encrypted_private_key}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(walletInfo.private_key || walletInfo.encrypted_private_key);
+                                                alert('Private key copied to clipboard!');
+                                            }}
+                                            className="mt-2 text-xs text-indigo-400 hover:text-indigo-300"
+                                        >
+                                            📋 Click to copy
+                                        </button>
+                                    </div>
+                                    <div className="bg-indigo-500/10 border border-indigo-500 rounded-lg p-4 mb-4">
+                                        <p className="text-indigo-400 text-sm font-semibold mb-2">Your Wallet ID:</p>
+                                        <p className="text-white text-xs break-all font-mono">{walletInfo.wallet_id}</p>
+                                    </div>
+                                </>
                             )}
 
                             <form onSubmit={handleVerifyOTP}>

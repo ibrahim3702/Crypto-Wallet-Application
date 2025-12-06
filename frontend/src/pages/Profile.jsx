@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { userAPI, walletAPI } from '../api';
-import { User, Mail, Wallet, Key, Loader } from 'lucide-react';
+import { User, Mail, Wallet, Key, Loader, Eye, EyeOff, Copy } from 'lucide-react';
 
 export default function Profile() {
     const { user } = useAuth();
     const [walletInfo, setWalletInfo] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [showPrivateKey, setShowPrivateKey] = useState(false);
+    const [privateKey, setPrivateKey] = useState('');
 
     useEffect(() => {
         fetchWalletInfo();
@@ -83,6 +85,59 @@ export default function Profile() {
                         <div className="bg-gray-700 p-4 rounded-lg">
                             <p className="text-white font-mono text-xs break-all">{user?.public_key}</p>
                         </div>
+                    </div>
+
+                    <div className="card bg-red-900/10 border-red-500/30">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold text-white flex items-center">
+                                <Key className="w-5 h-5 mr-2" />
+                                Private Key
+                            </h2>
+                            <button
+                                onClick={async () => {
+                                    if (!showPrivateKey) {
+                                        try {
+                                            const response = await userAPI.getPrivateKey();
+                                            setPrivateKey(response.data.private_key || response.data.encrypted_private_key);
+                                            setShowPrivateKey(true);
+                                        } catch (error) {
+                                            alert('Failed to retrieve private key');
+                                        }
+                                    } else {
+                                        setShowPrivateKey(false);
+                                        setPrivateKey('');
+                                    }
+                                }}
+                                className="flex items-center space-x-2 text-sm text-red-400 hover:text-red-300"
+                            >
+                                {showPrivateKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                <span>{showPrivateKey ? 'Hide' : 'Reveal'}</span>
+                            </button>
+                        </div>
+                        <div className="bg-yellow-500/10 border border-yellow-500 rounded-lg p-3 mb-3">
+                            <p className="text-yellow-400 text-xs">
+                                ⚠️ Never share your private key with anyone. You need it to sign transactions.
+                            </p>
+                        </div>
+                        {showPrivateKey ? (
+                            <div className="bg-gray-900 p-4 rounded-lg">
+                                <p className="text-white font-mono text-xs break-all select-all mb-3">{privateKey}</p>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(privateKey);
+                                        alert('Private key copied to clipboard!');
+                                    }}
+                                    className="flex items-center space-x-2 text-sm text-indigo-400 hover:text-indigo-300"
+                                >
+                                    <Copy className="w-4 h-4" />
+                                    <span>Copy to Clipboard</span>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="bg-gray-900 p-4 rounded-lg text-center">
+                                <p className="text-gray-500">••••••••••••••••••••••••••••</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
