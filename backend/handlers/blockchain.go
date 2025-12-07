@@ -89,8 +89,11 @@ func MineBlock(c *gin.Context) {
 		transactions = append(transactions, ptx.Transaction)
 	}
 
-	// Allow mining even with 0 transactions (just coinbase/mining reward)
-	// This is useful for initial mining or when there are no pending transactions
+	// Require at least one valid pending transaction before mining
+	if len(transactions) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No pending transactions to mine"})
+		return
+	}
 
 	// Create coinbase transaction (mining reward)
 	coinbaseTx := models.Transaction{
