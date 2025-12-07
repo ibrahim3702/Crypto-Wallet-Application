@@ -96,11 +96,11 @@ body::before {
     @apply w-full;
 }
 
-.google-login-wrapper > div {
+.google-login-wrapper>div {
     @apply w-full flex justify-center;
 }
 
-.google-login-wrapper > div > div {
+.google-login-wrapper>div>div {
     @apply w-full !important;
 }
 
