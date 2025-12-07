@@ -27,45 +27,54 @@ export default function UTXOs() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-                <Loader className="w-12 h-12 text-indigo-500 animate-spin" />
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader className="w-12 h-12 text-[#7fffd4] animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 py-8">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="flex items-center justify-between mb-8">
-                    <h1 className="text-3xl font-bold text-white">Unspent Transaction Outputs (UTXOs)</h1>
+        <div className="min-h-screen py-10 px-4">
+            <div className="max-w-7xl mx-auto space-y-8">
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div>
+                        <p className="section-title">Ledger</p>
+                        <h1 className="text-3xl font-bold text-white">Unspent Transaction Outputs</h1>
+                        <p className="text-gray-400 mt-2">See the coins that fuel your next transactions.</p>
+                    </div>
+                    <div className="pill bg-white/10">
+                        <Coins className="w-4 h-4 text-[#7fffd4]" />
+                        <span className="text-sm">{utxos.length} outputs</span>
+                    </div>
                 </div>
 
-                <div className="card bg-gradient-to-br from-indigo-600 to-purple-600 mb-6">
-                    <div className="flex items-center justify-between">
+                <div className="card relative overflow-hidden">
+                    <div className="absolute -right-12 -top-16 w-56 h-56 rounded-full bg-[#7fffd4]/10 blur-3xl" />
+                    <div className="flex items-center justify-between relative z-10">
                         <div>
-                            <p className="text-indigo-200 text-sm">Total Balance from UTXOs</p>
-                            <p className="text-white font-bold text-3xl">{totalBalance.toFixed(2)} CW</p>
-                            <p className="text-indigo-200 text-sm mt-1">{utxos.length} unspent outputs</p>
+                            <p className="text-gray-300 text-sm">Total Balance from UTXOs</p>
+                            <p className="text-white font-bold text-4xl">{totalBalance.toFixed(2)} CW</p>
+                            <p className="text-gray-400 text-sm mt-1">{utxos.length} unspent outputs</p>
                         </div>
-                        <Coins className="w-16 h-16 text-indigo-200" />
+                        <Coins className="w-16 h-16 text-[#7fffd4]" />
                     </div>
                 </div>
 
                 {utxos.length === 0 ? (
                     <div className="card text-center py-12">
                         <Package className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                        <p className="text-gray-400">No unspent outputs available</p>
-                        <p className="text-gray-500 text-sm mt-2">Receive some coins to see UTXOs here</p>
+                        <p className="text-gray-300">No unspent outputs available</p>
+                        <p className="text-gray-500 text-sm mt-2">Receive some coins to see UTXOs here.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-4">
                         {utxos.map((utxo, index) => (
-                            <div key={index} className="card hover:bg-gray-700/50 transition">
+                            <div key={index} className="card hover:border-white/20 transition">
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                         <div className="flex items-center space-x-3 mb-3">
-                                            <div className="bg-indigo-500 p-2 rounded-lg">
-                                                <Package className="w-5 h-5 text-white" />
+                                            <div className="bg-white/10 p-3 rounded-lg border border-white/10">
+                                                <Package className="w-5 h-5 text-[#7fffd4]" />
                                             </div>
                                             <div>
                                                 <p className="text-white font-bold text-lg">{(utxo.amount || 0).toFixed(2)} CW</p>
@@ -94,24 +103,18 @@ export default function UTXOs() {
                                             <div className="flex items-center gap-2">
                                                 <span className="text-gray-400">Status:</span>
                                                 {utxo.is_spent ? (
-                                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-red-900/30 text-red-400">
-                                                        Spent
-                                                    </span>
+                                                    <span className="pill tag-danger">Spent</span>
                                                 ) : utxo.is_locked ? (
-                                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-yellow-900/30 text-yellow-400">
-                                                        🔒 Locked (Pending Transaction)
-                                                    </span>
+                                                    <span className="pill tag-warn">🔒 Locked (Pending)</span>
                                                 ) : (
-                                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-green-900/30 text-green-400">
-                                                        ✓ Available
-                                                    </span>
+                                                    <span className="pill tag-success">✓ Available</span>
                                                 )}
                                             </div>
 
                                             {utxo.is_locked && utxo.locked_by && (
                                                 <div>
                                                     <span className="text-gray-400">Locked by Transaction:</span>
-                                                    <p className="text-yellow-400 font-mono text-xs break-all mt-1">{utxo.locked_by}</p>
+                                                    <p className="text-amber-200 font-mono text-xs break-all mt-1">{utxo.locked_by}</p>
                                                 </div>
                                             )}
                                         </div>

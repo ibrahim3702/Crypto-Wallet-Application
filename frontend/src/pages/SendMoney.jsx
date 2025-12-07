@@ -59,32 +59,41 @@ export default function SendMoney() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 py-8">
-            <div className="max-w-2xl mx-auto px-4">
-                <h1 className="text-3xl font-bold text-white mb-8">Send Money</h1>
+        <div className="min-h-screen py-10 px-4">
+            <div className="max-w-3xl mx-auto space-y-6">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <p className="section-title">Transfer</p>
+                        <h1 className="text-3xl font-bold text-white">Send funds with confidence</h1>
+                        <p className="text-gray-400 mt-2">Look up a recipient by email or paste their wallet ID.</p>
+                    </div>
+                    <div className="pill bg-white/10">
+                        <Send className="w-4 h-4 text-[#7fffd4]" />
+                        <span className="text-sm">Secure & signed</span>
+                    </div>
+                </div>
 
                 <div className="card">
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg mb-4">
+                        <div className="bg-red-400/10 border border-red-400/40 text-red-200 px-4 py-3 rounded-lg mb-4">
                             {error}
                         </div>
                     )}
 
                     {success && (
-                        <div className="bg-green-500/10 border border-green-500 text-green-500 px-4 py-3 rounded-lg mb-4 flex items-center">
+                        <div className="bg-emerald-400/10 border border-emerald-400/40 text-emerald-200 px-4 py-3 rounded-lg mb-4 flex items-center">
                             <CheckCircle className="w-5 h-5 mr-2" />
                             {success}
                         </div>
                     )}
 
-                    {/* Toggle between Email and Wallet ID */}
-                    <div className="flex space-x-2 mb-6">
+                    <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 mb-6">
                         <button
                             type="button"
                             onClick={() => setUseEmail(true)}
                             className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${useEmail
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                ? 'bg-gradient-to-r from-[#5a6cf3] to-[#7fffd4] text-gray-900'
+                                : 'bg-white/5 text-gray-300 hover:bg-white/10'
                                 }`}
                         >
                             <User className="w-4 h-4 inline mr-2" />
@@ -94,21 +103,21 @@ export default function SendMoney() {
                             type="button"
                             onClick={() => { setUseEmail(false); setSearchResult(null); }}
                             className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${!useEmail
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                ? 'bg-gradient-to-r from-[#5a6cf3] to-[#7fffd4] text-gray-900'
+                                : 'bg-white/5 text-gray-300 hover:bg-white/10'
                                 }`}
                         >
                             Enter Wallet ID
                         </button>
                     </div>
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {useEmail ? (
-                            <div className="mb-4">
+                            <div>
                                 <label className="block text-gray-300 text-sm font-semibold mb-2">
                                     Recipient Email
                                 </label>
-                                <div className="flex space-x-2">
+                                <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
                                     <input
                                         type="email"
                                         value={searchEmail}
@@ -120,7 +129,7 @@ export default function SendMoney() {
                                         type="button"
                                         onClick={handleEmailSearch}
                                         disabled={searchLoading || !searchEmail}
-                                        className="btn-secondary px-4"
+                                        className="btn-secondary px-4 flex items-center justify-center"
                                     >
                                         {searchLoading ? (
                                             <Loader className="w-5 h-5 animate-spin" />
@@ -131,9 +140,9 @@ export default function SendMoney() {
                                 </div>
 
                                 {searchResult && (
-                                    <div className="mt-3 p-3 bg-green-500/10 border border-green-500 rounded-lg">
-                                        <p className="text-green-400 text-sm font-semibold mb-1">✓ User Found</p>
-                                        <p className="text-gray-300 text-sm font-medium">{searchResult.full_name}</p>
+                                    <div className="mt-3 p-3 surface border border-emerald-400/20">
+                                        <p className="text-emerald-300 text-sm font-semibold mb-1">User found</p>
+                                        <p className="text-gray-200 text-sm font-medium">{searchResult.full_name}</p>
                                         <p className="text-gray-400 text-xs">{searchResult.email}</p>
                                         <p className="text-gray-500 text-xs font-mono mt-1">{searchResult.wallet_id}</p>
                                     </div>
@@ -141,12 +150,12 @@ export default function SendMoney() {
 
                                 {!searchResult && searchEmail && !searchLoading && (
                                     <p className="mt-2 text-xs text-gray-400">
-                                        💡 Tip: Make sure the email is registered on the platform
+                                        Tip: Make sure the email is registered.
                                     </p>
                                 )}
                             </div>
                         ) : (
-                            <div className="mb-4">
+                            <div>
                                 <label className="block text-gray-300 text-sm font-semibold mb-2">
                                     Receiver Wallet ID
                                 </label>
@@ -161,7 +170,7 @@ export default function SendMoney() {
                             </div>
                         )}
 
-                        <div className="mb-4">
+                        <div>
                             <label className="block text-gray-300 text-sm font-semibold mb-2">
                                 Amount (CW)
                             </label>
@@ -176,7 +185,7 @@ export default function SendMoney() {
                             />
                         </div>
 
-                        <div className="mb-4">
+                        <div>
                             <label className="block text-gray-300 text-sm font-semibold mb-2">
                                 Note (Optional)
                             </label>
@@ -189,13 +198,13 @@ export default function SendMoney() {
                             />
                         </div>
 
-                        <div className="mb-6">
+                        <div>
                             <label className="block text-gray-300 text-sm font-semibold mb-2">
                                 Private Key
                             </label>
-                            <div className="bg-yellow-500/10 border border-yellow-500 rounded-lg p-3 mb-2">
-                                <p className="text-yellow-400 text-xs">
-                                    ⚠️ Paste your private key in PEM format (starts with -----BEGIN RSA PRIVATE KEY-----). You can find it in your Profile page.
+                            <div className="bg-amber-400/10 border border-amber-400/40 rounded-lg p-3 mb-2">
+                                <p className="text-amber-200 text-xs">
+                                    Paste your private key in PEM format (starts with -----BEGIN RSA PRIVATE KEY-----). You can find it on your Profile page.
                                 </p>
                             </div>
                             <textarea
@@ -207,7 +216,7 @@ export default function SendMoney() {
                                 required
                             />
                             <p className="text-xs text-gray-400 mt-2">
-                                Your private key is required to sign the transaction
+                                Your private key signs and secures this transaction.
                             </p>
                         </div>
 

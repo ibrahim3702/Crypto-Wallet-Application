@@ -39,7 +39,7 @@ export default function BalanceChart({ data = [] }) {
         const stepX = chartWidth / (chartData.length - 1);
 
         // Draw grid lines
-        ctx.strokeStyle = 'rgba(59, 130, 246, 0.1)';
+        ctx.strokeStyle = 'rgba(127, 255, 212, 0.12)';
         ctx.lineWidth = 1;
         for (let i = 0; i <= 5; i++) {
             const y = padding + (chartHeight / 5) * i;
@@ -51,8 +51,8 @@ export default function BalanceChart({ data = [] }) {
 
         // Draw gradient area
         const gradient = ctx.createLinearGradient(0, padding, 0, height - padding);
-        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
-        gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        gradient.addColorStop(0, 'rgba(127, 255, 212, 0.25)');
+        gradient.addColorStop(1, 'rgba(90, 108, 243, 0)');
 
         ctx.beginPath();
         ctx.moveTo(padding, height - padding);
@@ -76,7 +76,7 @@ export default function BalanceChart({ data = [] }) {
 
         // Draw line
         ctx.beginPath();
-        ctx.strokeStyle = 'rgba(59, 130, 246, 1)';
+        ctx.strokeStyle = 'rgba(90, 108, 243, 1)';
         ctx.lineWidth = 2;
 
         chartData.forEach((point, index) => {
@@ -101,13 +101,13 @@ export default function BalanceChart({ data = [] }) {
 
             ctx.beginPath();
             ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.fillStyle = '#3B82F6';
+            ctx.fillStyle = '#7fffd4';
             ctx.fill();
         });
 
         // Draw time labels
-        ctx.fillStyle = '#9CA3AF';
-        ctx.font = '600 11px Inter, system-ui, sans-serif';
+        ctx.fillStyle = '#cdd4ea';
+        ctx.font = '600 11px Space Grotesk, system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
 

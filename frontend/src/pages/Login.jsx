@@ -36,32 +36,34 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-900 flex items-center justify-center px-4">
-            <div className="max-w-md w-full">
-                <div className="text-center mb-8">
-                    <Wallet className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
-                    <h1 className="text-3xl font-bold text-white mb-2">CryptoWallet</h1>
-                    <p className="text-gray-400">Decentralized Cryptocurrency Wallet</p>
+        <div className="min-h-screen flex items-center justify-center px-4 py-10">
+            <div className="max-w-md w-full space-y-6">
+                <div className="text-center">
+                    <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-gradient-to-br from-[#5a6cf3] to-[#7fffd4] shadow-xl shadow-[#5a6cf3]/30 mb-4">
+                        <Wallet className="w-10 h-10 text-gray-900" />
+                    </div>
+                    <h1 className="text-3xl font-bold text-white mb-2">CryptoWallet Nova</h1>
+                    <p className="text-gray-400">Secure entry with email + OTP</p>
                 </div>
 
                 <div className="card">
                     <h2 className="text-2xl font-bold text-white mb-6 text-center">Login</h2>
 
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg mb-4">
+                        <div className="bg-red-400/10 border border-red-400/40 text-red-200 px-4 py-3 rounded-lg mb-4">
                             {error}
                         </div>
                     )}
 
                     {message && (
-                        <div className="bg-green-500/10 border border-green-500 text-green-500 px-4 py-3 rounded-lg mb-4">
+                        <div className="bg-emerald-400/10 border border-emerald-400/40 text-emerald-200 px-4 py-3 rounded-lg mb-4">
                             {message}
                         </div>
                     )}
 
                     {step === 1 ? (
-                        <form onSubmit={handleSendOTP}>
-                            <div className="mb-4">
+                        <form onSubmit={handleSendOTP} className="space-y-4">
+                            <div>
                                 <label className="block text-gray-300 text-sm font-semibold mb-2">
                                     Email Address
                                 </label>
@@ -91,8 +93,8 @@ export default function Login() {
                             </button>
                         </form>
                     ) : (
-                        <form onSubmit={handleVerifyOTP}>
-                            <div className="mb-4">
+                        <form onSubmit={handleVerifyOTP} className="space-y-4">
+                            <div>
                                 <label className="block text-gray-300 text-sm font-semibold mb-2">
                                     Enter OTP
                                 </label>
@@ -109,7 +111,7 @@ export default function Login() {
                                     />
                                 </div>
                                 <p className="text-sm text-gray-400 mt-2">
-                                    Check your email for the OTP code
+                                    Check your email for the OTP code.
                                 </p>
                             </div>
 
@@ -138,7 +140,7 @@ export default function Login() {
                     <div className="mt-6 text-center">
                         <p className="text-gray-400">
                             Don't have an account?{' '}
-                            <Link to="/signup" className="text-indigo-500 hover:text-indigo-400 font-semibold">
+                            <Link to="/signup" className="text-[#7fffd4] hover:text-white font-semibold">
                                 Sign up
                             </Link>
                         </p>

@@ -12,56 +12,54 @@ export default function Navbar() {
     };
 
     return (
-        <nav className="fixed top-0 left-0 right-0 bg-gray-900 border-b border-gray-800 z-50">
+        <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg bg-black/40 border-b border-white/10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex items-center space-x-8">
-                        <Link to="/dashboard" className="flex items-center space-x-2">
-                            <BadgeDollarSign className="w-8 h-8 text-indigo-500" />
-                            <span className="text-xl font-bold text-white">CryptoWallet</span>
+                        <Link to="/dashboard" className="flex items-center space-x-3 group">
+                            <div className="p-2 rounded-xl bg-gradient-to-br from-[#5a6cf3] to-[#7fffd4] shadow-lg shadow-[#5a6cf3]/30">
+                                <BadgeDollarSign className="w-6 h-6 text-gray-900" />
+                            </div>
+                            <div>
+                                <span className="text-xs uppercase tracking-[0.25em] text-gray-400 block">Crypto Wallet</span>
+                                <span className="text-lg font-bold text-white group-hover:text-[#7fffd4] transition">Nova</span>
+                            </div>
                         </Link>
 
-                        <div className="hidden md:flex space-x-4">
-                            <Link to="/dashboard" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1">
-                                <Wallet className="w-4 h-4" />
-                                <span>Dashboard</span>
-                            </Link>
-                            <Link to="/send" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1">
-                                <Send className="w-4 h-4" />
-                                <span>Send Money</span>
-                            </Link>
-                            <Link to="/transactions" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1">
-                                <Clock className="w-4 h-4" />
-                                <span>History</span>
-                            </Link>
-                            <Link to="/blockchain" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1">
-                                <Blocks className="w-4 h-4" />
-                                <span>Blockchain</span>
-                            </Link>
-                            <Link to="/utxos" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1">
-                                <Package className="w-4 h-4" />
-                                <span>UTXOs</span>
-                            </Link>
-                            <Link to="/reports" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1">
-                                <BarChart3 className="w-4 h-4" />
-                                <span>Reports</span>
-                            </Link>
+                        <div className="hidden md:flex space-x-2">
+                            {[
+                                { to: '/dashboard', label: 'Dashboard', icon: Wallet },
+                                { to: '/send', label: 'Send', icon: Send },
+                                { to: '/transactions', label: 'History', icon: Clock },
+                                { to: '/blockchain', label: 'Chain', icon: Blocks },
+                                { to: '/utxos', label: 'UTXOs', icon: Package },
+                                { to: '/reports', label: 'Reports', icon: BarChart3 }
+                            ].map(({ to, label, icon: Icon }) => (
+                                <Link
+                                    key={to}
+                                    to={to}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10 transition"
+                                >
+                                    <Icon className="w-4 h-4" />
+                                    <span>{label}</span>
+                                </Link>
+                            ))}
                         </div>
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                            <p className="text-sm font-medium text-white">{user?.full_name}</p>
+                        <div className="text-right hidden sm:block">
+                            <p className="text-sm font-semibold text-white">{user?.full_name}</p>
                             <p className="text-xs text-gray-400">{user?.wallet_id?.substring(0, 10)}...</p>
                         </div>
-                        <Link to="/profile" className="text-gray-300 hover:text-white">
-                            <User className="w-6 h-6" />
+                        <Link to="/profile" className="p-2 rounded-lg hover:bg-white/10 text-gray-200 transition">
+                            <User className="w-5 h-5" />
                         </Link>
                         <button
                             onClick={handleLogout}
-                            className="text-gray-300 hover:text-white"
+                            className="p-2 rounded-lg hover:bg-white/10 text-gray-200 transition"
                         >
-                            <LogOut className="w-6 h-6" />
+                            <LogOut className="w-5 h-5" />
                         </button>
                     </div>
                 </div>

@@ -58,27 +58,30 @@ export default function Blockchain() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-                <Loader className="w-12 h-12 text-indigo-500 animate-spin" />
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader className="w-12 h-12 text-[#7fffd4] animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 py-8">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold text-white">Blockchain Explorer</h1>
+        <div className="min-h-screen py-10 px-4">
+            <div className="max-w-7xl mx-auto space-y-6">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <p className="section-title">Explorer</p>
+                        <h1 className="text-3xl font-bold text-white">Blockchain</h1>
+                    </div>
                     <button onClick={handleMineClick} className="btn-primary">
                         Mine Block
                     </button>
                 </div>                <div className="grid grid-cols-1 gap-4">
                     {blocks.map((block, index) => (
-                        <div key={block.index} className="card hover:bg-gray-700/50 transition cursor-pointer" onClick={() => setSelectedBlock(block)}>
+                        <div key={block.index} className="card hover:border-white/20 transition cursor-pointer" onClick={() => setSelectedBlock(block)}>
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center space-x-4">
-                                    <div className="bg-indigo-500 p-3 rounded-lg">
-                                        <Package className="w-8 h-8 text-white" />
+                                    <div className="p-3 rounded-lg bg-white/10 border border-white/10">
+                                        <Package className="w-8 h-8 text-[#7fffd4]" />
                                     </div>
                                     <div>
                                         <h3 className="text-white font-bold text-lg">Block #{block.index}</h3>
@@ -91,7 +94,7 @@ export default function Blockchain() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-gray-400 text-sm">{block.transactions.length} Transactions</p>
+                                    <p className="text-gray-300 text-sm">{block.transactions.length} Transactions</p>
                                     <p className="text-gray-500 text-xs">Nonce: {block.nonce}</p>
                                 </div>
                             </div>
@@ -101,7 +104,7 @@ export default function Blockchain() {
 
                 {selectedBlock && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={() => setSelectedBlock(null)}>
-                        <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                        <div className="frosted-panel p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                             <h2 className="text-2xl font-bold text-white mb-4">Block #{selectedBlock.index}</h2>
                             <div className="space-y-3 text-sm">
                                 <div>
@@ -139,18 +142,18 @@ export default function Blockchain() {
 
                 {showMineModal && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={closeMineModal}>
-                        <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
+                        <div className="frosted-panel p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-2xl font-bold text-white">Mine New Block</h2>
-                                <button onClick={closeMineModal} className="text-gray-400 hover:text-white">
+                                <button onClick={closeMineModal} className="text-gray-300 hover:text-white">
                                     <X className="w-6 h-6" />
                                 </button>
                             </div>
 
                             {!mineResult ? (
                                 <>
-                                    <p className="text-gray-300 mb-6">
-                                        Are you sure you want to mine a new block? This will include all pending transactions and you will receive a mining reward of 50 CW.
+                                    <p className="text-gray-200 mb-6">
+                                        Mine now to include pending transactions and claim the 50 CW reward.
                                     </p>
                                     <div className="flex space-x-3">
                                         <button
@@ -174,7 +177,7 @@ export default function Blockchain() {
                                 </>
                             ) : (
                                 <>
-                                    <div className={`flex items-center p-4 rounded-lg mb-4 ${mineResult.success ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'
+                                    <div className={`flex items-center p-4 rounded-lg mb-4 ${mineResult.success ? 'bg-emerald-400/15 text-emerald-200' : 'bg-red-400/15 text-red-200'
                                         }`}>
                                         {mineResult.success ? (
                                             <CheckCircle className="w-6 h-6 mr-3" />

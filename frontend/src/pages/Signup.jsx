@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Wallet, User, Mail, CreditCard, Loader } from 'lucide-react';
+import InfoModal from '../components/InfoModal';
 
 export default function Signup() {
     const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ export default function Signup() {
     const [message, setMessage] = useState('');
     const [walletInfo, setWalletInfo] = useState(null);
     const { signup, verifyOTP, loading } = useAuth();
+    const [modal, setModal] = useState({ open: false, title: '', message: '', variant: 'info' });
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -46,30 +48,32 @@ export default function Signup() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-900 flex items-center justify-center px-4 py-8">
-            <div className="max-w-md w-full">
-                <div className="text-center mb-8">
-                    <Wallet className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
+        <div className="min-h-screen flex items-center justify-center px-4 py-10">
+            <div className="max-w-md w-full space-y-6">
+                <div className="text-center">
+                    <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-gradient-to-br from-[#5a6cf3] to-[#7fffd4] shadow-xl shadow-[#5a6cf3]/30 mb-4">
+                        <Wallet className="w-10 h-10 text-gray-900" />
+                    </div>
                     <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
                     <p className="text-gray-400">Join the decentralized wallet system</p>
                 </div>
 
                 <div className="card">
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg mb-4">
+                        <div className="bg-red-400/10 border border-red-400/40 text-red-200 px-4 py-3 rounded-lg mb-4">
                             {error}
                         </div>
                     )}
 
                     {message && (
-                        <div className="bg-green-500/10 border border-green-500 text-green-500 px-4 py-3 rounded-lg mb-4">
+                        <div className="bg-emerald-400/10 border border-emerald-400/40 text-emerald-200 px-4 py-3 rounded-lg mb-4">
                             {message}
                         </div>
                     )}
 
                     {step === 1 ? (
-                        <form onSubmit={handleSignup}>
-                            <div className="mb-4">
+                        <form onSubmit={handleSignup} className="space-y-4">
+                            <div>
                                 <label className="block text-gray-300 text-sm font-semibold mb-2">
                                     Full Name
                                 </label>
@@ -87,7 +91,7 @@ export default function Signup() {
                                 </div>
                             </div>
 
-                            <div className="mb-4">
+                            <div>
                                 <label className="block text-gray-300 text-sm font-semibold mb-2">
                                     Email Address
                                 </label>
@@ -105,7 +109,7 @@ export default function Signup() {
                                 </div>
                             </div>
 
-                            <div className="mb-6">
+                            <div>
                                 <label className="block text-gray-300 text-sm font-semibold mb-2">
                                     CNIC / National ID
                                 </label>
@@ -136,16 +140,16 @@ export default function Signup() {
                             </button>
                         </form>
                     ) : (
-                        <div>
+                        <div className="space-y-4">
                             {walletInfo && (
                                 <>
-                                    <div className="bg-yellow-500/10 border border-yellow-500 rounded-lg p-4 mb-4">
-                                        <p className="text-yellow-400 text-sm font-semibold mb-2">⚠️ IMPORTANT - Save Your Private Key!</p>
-                                        <p className="text-yellow-300 text-xs mb-3">
+                                    <div className="bg-amber-400/10 border border-amber-400/40 rounded-lg p-4">
+                                        <p className="text-amber-200 text-sm font-semibold mb-2">⚠️ IMPORTANT - Save Your Private Key!</p>
+                                        <p className="text-amber-100 text-xs mb-3">
                                             This is your ONLY chance to see your private key. Save it securely - you'll need it to send transactions.
                                         </p>
                                         <p className="text-gray-400 text-xs mb-1">Private Key:</p>
-                                        <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                                        <div className="bg-black/40 p-3 rounded border border-white/10">
                                             <p className="text-white text-xs break-all font-mono select-all">
                                                 {walletInfo.private_key || walletInfo.encrypted_private_key}
                                             </p>
@@ -154,22 +158,22 @@ export default function Signup() {
                                             type="button"
                                             onClick={() => {
                                                 navigator.clipboard.writeText(walletInfo.private_key || walletInfo.encrypted_private_key);
-                                                alert('Private key copied to clipboard!');
+                                                setModal({ open: true, title: 'Copied', message: 'Private key copied to clipboard.', variant: 'success' });
                                             }}
-                                            className="mt-2 text-xs text-indigo-400 hover:text-indigo-300"
+                                            className="mt-2 text-xs text-[#7fffd4] hover:text-white"
                                         >
                                             📋 Click to copy
                                         </button>
                                     </div>
-                                    <div className="bg-indigo-500/10 border border-indigo-500 rounded-lg p-4 mb-4">
-                                        <p className="text-indigo-400 text-sm font-semibold mb-2">Your Wallet ID:</p>
+                                    <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                                        <p className="text-gray-300 text-sm font-semibold mb-2">Your Wallet ID:</p>
                                         <p className="text-white text-xs break-all font-mono">{walletInfo.wallet_id}</p>
                                     </div>
                                 </>
                             )}
 
-                            <form onSubmit={handleVerifyOTP}>
-                                <div className="mb-4">
+                            <form onSubmit={handleVerifyOTP} className="space-y-4">
+                                <div>
                                     <label className="block text-gray-300 text-sm font-semibold mb-2">
                                         Enter OTP
                                     </label>
@@ -205,13 +209,20 @@ export default function Signup() {
                     <div className="mt-6 text-center">
                         <p className="text-gray-400">
                             Already have an account?{' '}
-                            <Link to="/login" className="text-indigo-500 hover:text-indigo-400 font-semibold">
+                            <Link to="/login" className="text-[#7fffd4] hover:text-white font-semibold">
                                 Login
                             </Link>
                         </p>
                     </div>
                 </div>
             </div>
+            <InfoModal
+                open={modal.open}
+                title={modal.title}
+                message={modal.message}
+                variant={modal.variant === 'error' ? 'error' : 'success'}
+                onClose={() => setModal({ ...modal, open: false })}
+            />
         </div>
     );
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { reportsAPI, transactionAPI, systemAPI } from '../api';
 import { BarChart3, Loader, TrendingUp, TrendingDown, DollarSign, Download } from 'lucide-react';
+import ConfirmModal from '../components/ConfirmModal';
+import InfoModal from '../components/InfoModal';
 
 export default function Reports() {
     const [monthly, setMonthly] = useState(null);
@@ -15,6 +17,9 @@ export default function Reports() {
     const [customEndDate, setCustomEndDate] = useState('');
     const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
     const [hoveredPoint, setHoveredPoint] = useState(null);
+    const [showZakatConfirm, setShowZakatConfirm] = useState(false);
+    const [confirmingZakat, setConfirmingZakat] = useState(false);
+    const [modal, setModal] = useState({ open: false, title: '', message: '', variant: 'info' });
     const chartRef = useRef(null);
     const chartDataRef = useRef(null);
 
@@ -59,21 +64,22 @@ export default function Reports() {
         }
     };
 
-    const handleTriggerZakat = async () => {
-        if (!window.confirm('Are you sure you want to manually trigger Zakat deduction for all eligible wallets?')) {
-            return;
-        }
+    const handleTriggerZakat = () => {
+        setShowZakatConfirm(true);
+    };
 
+    const confirmTriggerZakat = async () => {
         try {
-            setLoading(true);
+            setConfirmingZakat(true);
             await systemAPI.triggerZakat();
-            alert('✅ Zakat deduction triggered successfully! Check your transaction history.');
-            await fetchReports(); // Refresh data
+            setModal({ open: true, title: 'Zakat triggered', message: 'Zakat deduction executed for eligible wallets. Check transaction history.', variant: 'success' });
+            await fetchReports();
         } catch (error) {
             console.error('Error triggering Zakat:', error);
-            alert('❌ Failed to trigger Zakat: ' + (error.response?.data?.error || error.message));
+            setModal({ open: true, title: 'Trigger failed', message: error.response?.data?.error || error.message || 'Failed to trigger Zakat', variant: 'error' });
         } finally {
-            setLoading(false);
+            setConfirmingZakat(false);
+            setShowZakatConfirm(false);
         }
     };
 
@@ -148,11 +154,10 @@ export default function Reports() {
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-
-            alert('✅ Report exported successfully!');
+            setModal({ open: true, title: 'Export ready', message: 'Report exported successfully as JSON.', variant: 'success' });
         } catch (error) {
             console.error('Error exporting report:', error);
-            alert('❌ Failed to export report: ' + error.message);
+            setModal({ open: true, title: 'Export failed', message: error.message || 'Could not export report', variant: 'error' });
         }
     };
 
@@ -333,25 +338,26 @@ export default function Reports() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#1a1f37] flex items-center justify-center">
-                <Loader className="w-12 h-12 text-blue-500 animate-spin" />
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader className="w-12 h-12 text-[#7fffd4] animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#1a1f37] py-8">
-            <div className="max-w-7xl mx-auto px-4">
+        <div className="min-h-screen py-10">
+            <div className="max-w-7xl mx-auto px-4 space-y-8">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-6">
                     <div>
+                        <p className="section-title">Insights</p>
                         <h1 className="text-3xl font-bold text-white mb-2">Analytics & Reports</h1>
                         <p className="text-gray-400 text-sm">View transaction patterns, Zakat deductions, and system logs.</p>
                     </div>
                     <div className="flex space-x-3">
                         <button
                             onClick={handleTriggerZakat}
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition"
+                            className="btn-secondary flex items-center space-x-2"
                             disabled={loading}
                         >
                             <DollarSign className="w-4 h-4" />
@@ -359,7 +365,7 @@ export default function Reports() {
                         </button>
                         <button
                             onClick={handleExportAll}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition"
+                            className="btn-primary flex items-center space-x-2"
                         >
                             <Download className="w-4 h-4" />
                             <span>Export All</span>
@@ -581,16 +587,16 @@ export default function Reports() {
                 </div>
 
                 {/* System Logs */}
-                <div className="bg-[#252b42] rounded-xl p-6 border border-gray-700">
+                <div className="card">
                     <div className="mb-4">
                         <h2 className="text-white font-semibold text-lg mb-1">System Logs</h2>
                         <p className="text-gray-400 text-sm">Recent system activities, including PoW and signature validations.</p>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="mb-6 overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b border-gray-700">
+                                <tr className="border-b border-white/10">
                                     <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">TIMESTAMP</th>
                                     <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">EVENT TYPE</th>
                                     <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">SEVERITY</th>
@@ -598,33 +604,30 @@ export default function Reports() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {systemLogs.length === 0 ? (
+                                {!systemLogs || systemLogs.length === 0 ? (
                                     <tr>
-                                        <td colSpan="4" className="py-8 text-center text-gray-400">No system logs available</td>
+                                        <td colSpan="4" className="text-center py-6 text-gray-400">No system logs found</td>
                                     </tr>
                                 ) : (
                                     systemLogs.slice(0, 10).map((log, index) => {
                                         const getStatusColor = (severity) => {
-                                            switch (severity?.toLowerCase()) {
+                                            switch ((severity || '').toLowerCase()) {
                                                 case 'error': return 'bg-red-900/30 text-red-400';
                                                 case 'warning': return 'bg-yellow-900/30 text-yellow-400';
-                                                case 'info': return 'bg-blue-900/30 text-blue-400';
                                                 default: return 'bg-green-900/30 text-green-400';
                                             }
                                         };
 
-                                        const getDetailsText = (log) => {
-                                            if (log.details) {
-                                                if (typeof log.details === 'object') {
-                                                    return JSON.stringify(log.details).substring(0, 50) + '...';
-                                                }
-                                                return String(log.details).substring(0, 50);
+                                        const getDetailsText = (entry) => {
+                                            if (entry.details) {
+                                                return JSON.stringify(entry.details).substring(0, 80) + (JSON.stringify(entry.details).length > 80 ? '...' : '');
                                             }
-                                            return log.message || 'N/A';
+                                            if (entry.message) return entry.message;
+                                            return 'N/A';
                                         };
 
                                         return (
-                                            <tr key={log.id || index} className="border-b border-gray-800">
+                                            <tr key={index} className="border-b border-white/5">
                                                 <td className="py-3 px-4 text-gray-400 text-sm">
                                                     {new Date(log.timestamp).toLocaleString()}
                                                 </td>
@@ -634,7 +637,7 @@ export default function Reports() {
                                                         {log.severity || 'Info'}
                                                     </span>
                                                 </td>
-                                                <td className="py-3 px-4 text-gray-400 text-sm font-mono">
+                                                <td className="py-3 px-4 text-gray-300 text-sm font-mono">
                                                     {getDetailsText(log)}
                                                 </td>
                                             </tr>
@@ -646,6 +649,23 @@ export default function Reports() {
                     </div>
                 </div>
             </div>
+            <ConfirmModal
+                open={showZakatConfirm}
+                title="Trigger Zakat deduction?"
+                description="This will deduct Zakat from all eligible wallets immediately. Proceed?"
+                confirmLabel="Trigger Zakat"
+                cancelLabel="Cancel"
+                loading={confirmingZakat}
+                onConfirm={confirmTriggerZakat}
+                onCancel={() => setShowZakatConfirm(false)}
+            />
+            <InfoModal
+                open={modal.open}
+                title={modal.title}
+                message={modal.message}
+                variant={modal.variant === 'error' ? 'error' : 'success'}
+                onClose={() => setModal({ ...modal, open: false })}
+            />
         </div>
     );
 }

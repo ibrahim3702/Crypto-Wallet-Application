@@ -1,42 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    line-height: 1.5;
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
     font-weight: 400;
+    color: #e6e9f5;
+    background-color: #050814;
+    --bg: radial-gradient(120% 120% at 20% 20%, #0c1540 0%, #050814 45%, #07101c 100%);
+    --panel: #0e1426;
+    --panel-glass: rgba(255, 255, 255, 0.04);
+    --stroke: rgba(255, 255, 255, 0.08);
+    --accent: #7fffd4;
+    --accent-2: #5a6cf3;
+    --muted: #9aa1b5;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 body {
     margin: 0;
     min-height: 100vh;
-    background: #1337ec;
-    color: #ffffff;
+    background-image: var(--bg);
+    color: #e6e9f5;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 20% 20%, rgba(90, 108, 243, 0.2), transparent 30%),
+        radial-gradient(circle at 80% 0%, rgba(127, 255, 212, 0.12), transparent 30%),
+        radial-gradient(circle at 40% 80%, rgba(90, 108, 243, 0.16), transparent 25%);
+    pointer-events: none;
+    z-index: -1;
 }
 
 @layer components {
     .btn-primary {
-        @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg;
+        @apply bg-gradient-to-r from-[#5a6cf3] to-[#7fffd4] text-gray-900 font-semibold py-3 px-6 rounded-xl shadow-lg shadow-[#5a6cf3]/30 transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed;
     }
 
     .btn-secondary {
-        @apply bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 border border-gray-700;
+        @apply bg-white/5 text-white font-semibold py-3 px-6 rounded-xl border border-white/10 transition duration-200 hover:border-white/20 hover:bg-white/10;
+    }
+
+    .btn-ghost {
+        @apply bg-transparent text-white font-semibold py-2 px-4 rounded-lg border border-transparent hover:border-white/20 hover:bg-white/5 transition;
     }
 
     .card {
-        @apply bg-[#161B33] rounded-xl shadow-xl p-6 border border-gray-800;
+        @apply rounded-2xl p-6 bg-gradient-to-br from-white/5 via-white/10 to-white/5 border border-white/10 shadow-2xl shadow-black/40 backdrop-blur;
+    }
+
+    .surface {
+        @apply rounded-2xl bg-white/5 border border-white/10 backdrop-blur;
     }
 
     .input-field {
-        @apply w-full bg-[#1A1F3A] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+        @apply w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#7fffd4] focus:border-transparent transition;
     }
 
-    .sidebar-link {
-        @apply flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-blue-600 hover:text-white transition duration-200 cursor-pointer;
+    .pill {
+        @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border border-white/10 bg-white/5;
     }
 
-    .sidebar-link-active {
-        @apply flex items-center space-x-3 px-4 py-3 rounded-lg bg-blue-600 text-white transition duration-200 cursor-pointer;
+    .tag-success {
+        @apply bg-emerald-400/15 text-emerald-300 border border-emerald-400/30;
+    }
+
+    .tag-warn {
+        @apply bg-amber-400/15 text-amber-300 border border-amber-400/30;
+    }
+
+    .tag-danger {
+        @apply bg-red-400/15 text-red-300 border border-red-400/30;
+    }
+
+    .section-title {
+        @apply text-sm uppercase tracking-[0.3em] text-gray-400 font-semibold mb-2;
+    }
+
+    .frosted-panel {
+        @apply bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl shadow-xl shadow-black/30;
     }
 }
