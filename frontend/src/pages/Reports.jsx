@@ -8,8 +8,12 @@ export default function Reports() {
     const [stats, setStats] = useState(null);
     const [systemLogs, setSystemLogs] = useState([]);
     const [transactions, setTransactions] = useState([]);
+    const [filteredTransactions, setFilteredTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [timeRange, setTimeRange] = useState('thisYear');
+    const [timeRange, setTimeRange] = useState('last30');
+    const [customStartDate, setCustomStartDate] = useState('');
+    const [customEndDate, setCustomEndDate] = useState('');
+    const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
     const [hoveredPoint, setHoveredPoint] = useState(null);
     const chartRef = useRef(null);
     const chartDataRef = useRef(null);
@@ -20,9 +24,15 @@ export default function Reports() {
 
     useEffect(() => {
         if (transactions.length > 0) {
+            filterTransactionsByTimeRange();
+        }
+    }, [transactions, timeRange, customStartDate, customEndDate]);
+
+    useEffect(() => {
+        if (filteredTransactions.length > 0) {
             drawChart();
         }
-    }, [transactions]);
+    }, [filteredTransactions]);
 
     const fetchReports = async () => {
         try {
@@ -49,6 +59,103 @@ export default function Reports() {
         }
     };
 
+    const handleTriggerZakat = async () => {
+        if (!window.confirm('Are you sure you want to manually trigger Zakat deduction for all eligible wallets?')) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await systemAPI.triggerZakat();
+            alert('✅ Zakat deduction triggered successfully! Check your transaction history.');
+            await fetchReports(); // Refresh data
+        } catch (error) {
+            console.error('Error triggering Zakat:', error);
+            alert('❌ Failed to trigger Zakat: ' + (error.response?.data?.error || error.message));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const filterTransactionsByTimeRange = () => {
+        const now = new Date();
+        let startDate;
+
+        switch (timeRange) {
+            case 'last30':
+                startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                break;
+            case 'last90':
+                startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                break;
+            case 'thisYear':
+                startDate = new Date(now.getFullYear(), 0, 1);
+                break;
+            case 'custom':
+                if (customStartDate && customEndDate) {
+                    startDate = new Date(customStartDate);
+                    const endDate = new Date(customEndDate);
+                    const filtered = transactions.filter(tx => {
+                        const txDate = new Date(tx.timestamp);
+                        return txDate >= startDate && txDate <= endDate;
+                    });
+                    setFilteredTransactions(filtered);
+                    return;
+                } else {
+                    setFilteredTransactions(transactions);
+                    return;
+                }
+            default:
+                setFilteredTransactions(transactions);
+                return;
+        }
+
+        const filtered = transactions.filter(tx => {
+            const txDate = new Date(tx.timestamp);
+            return txDate >= startDate;
+        });
+        setFilteredTransactions(filtered);
+    };
+
+    const handleTimeRangeChange = (range) => {
+        setTimeRange(range);
+        if (range === 'custom') {
+            setShowCustomDatePicker(true);
+        } else {
+            setShowCustomDatePicker(false);
+        }
+    };
+
+    const handleExportAll = () => {
+        try {
+            const exportData = {
+                monthly_report: monthly,
+                zakat_history: zakatHistory,
+                statistics: stats,
+                transactions: filteredTransactions,
+                system_logs: systemLogs,
+                export_date: new Date().toISOString(),
+                time_range: timeRange
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `crypto-wallet-report-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            alert('✅ Report exported successfully!');
+        } catch (error) {
+            console.error('Error exporting report:', error);
+            alert('❌ Failed to export report: ' + error.message);
+        }
+    };
+
     const drawChart = () => {
         const canvas = chartRef.current;
         if (!canvas) return;
@@ -72,23 +179,24 @@ export default function Reports() {
         // Clear canvas
         ctx.clearRect(0, 0, width, height);
 
-        if (transactions.length === 0) {
+        if (filteredTransactions.length === 0) {
             ctx.fillStyle = '#6B7280';
             ctx.font = '14px Inter';
             ctx.textAlign = 'center';
-            ctx.fillText('No transaction data available', width / 2, height / 2);
+            ctx.fillText('No transaction data available for selected range', width / 2, height / 2);
             return;
         }
 
-        // Group transactions by day for the last 30 days
+        // Group transactions by day
         const now = new Date();
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const daysToShow = timeRange === 'last90' ? 90 : timeRange === 'thisYear' ? 365 : 30;
+        const startDate = new Date(now.getTime() - daysToShow * 24 * 60 * 60 * 1000);
 
         // Create daily buckets
         const dailyData = {};
-        transactions.forEach(tx => {
+        filteredTransactions.forEach(tx => {
             const txDate = new Date(tx.timestamp);
-            if (txDate >= thirtyDaysAgo) {
+            if (txDate >= startDate) {
                 const dateKey = txDate.toISOString().split('T')[0];
                 if (!dailyData[dateKey]) {
                     dailyData[dateKey] = 0;
@@ -97,9 +205,9 @@ export default function Reports() {
             }
         });
 
-        // Create data points for last 30 days
+        // Create data points for selected range
         const dataPoints = [];
-        for (let i = 29; i >= 0; i--) {
+        for (let i = daysToShow - 1; i >= 0; i--) {
             const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
             const dateKey = date.toISOString().split('T')[0];
             const label = i === 0 ? 'Today' : i === 7 || i === 14 || i === 21 || i === 28 ? `${Math.floor(i / 7)}w ago` : '';
@@ -240,26 +348,75 @@ export default function Reports() {
                         <h1 className="text-3xl font-bold text-white mb-2">Analytics & Reports</h1>
                         <p className="text-gray-400 text-sm">View transaction patterns, Zakat deductions, and system logs.</p>
                     </div>
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition">
-                        <Download className="w-4 h-4" />
-                        <span>Export All</span>
-                    </button>
+                    <div className="flex space-x-3">
+                        <button
+                            onClick={handleTriggerZakat}
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition"
+                            disabled={loading}
+                        >
+                            <DollarSign className="w-4 h-4" />
+                            <span>Trigger Zakat</span>
+                        </button>
+                        <button
+                            onClick={handleExportAll}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition"
+                        >
+                            <Download className="w-4 h-4" />
+                            <span>Export All</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Time Range Filters */}
-                <div className="flex space-x-2 mb-6">
-                    {['Last 30 Days', 'Last 90 Days', 'This Year', 'Custom Range'].map((range, idx) => (
-                        <button
-                            key={idx}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${(idx === 2 && timeRange === 'thisYear')
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-[#252b42] text-gray-400 hover:bg-[#2d3349]'
-                                }`}
-                            onClick={() => setTimeRange(idx === 2 ? 'thisYear' : 'other')}
-                        >
-                            {range}
-                        </button>
-                    ))}
+                <div className="mb-6">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {[
+                            { label: 'Last 30 Days', value: 'last30' },
+                            { label: 'Last 90 Days', value: 'last90' },
+                            { label: 'This Year', value: 'thisYear' },
+                            { label: 'Custom Range', value: 'custom' }
+                        ].map((range) => (
+                            <button
+                                key={range.value}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${timeRange === range.value
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-[#252b42] text-gray-400 hover:bg-[#2d3349]'
+                                    }`}
+                                onClick={() => handleTimeRangeChange(range.value)}
+                            >
+                                {range.label}
+                            </button>
+                        ))}
+                    </div>
+                    {showCustomDatePicker && (
+                        <div className="flex items-center space-x-3 bg-[#252b42] p-4 rounded-lg border border-gray-700">
+                            <div className="flex flex-col">
+                                <label className="text-gray-400 text-xs mb-1">Start Date</label>
+                                <input
+                                    type="date"
+                                    value={customStartDate}
+                                    onChange={(e) => setCustomStartDate(e.target.value)}
+                                    className="bg-[#1a1f37] text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <label className="text-gray-400 text-xs mb-1">End Date</label>
+                                <input
+                                    type="date"
+                                    value={customEndDate}
+                                    onChange={(e) => setCustomEndDate(e.target.value)}
+                                    className="bg-[#1a1f37] text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                />
+                            </div>
+                            <button
+                                onClick={filterTransactionsByTimeRange}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mt-5 transition"
+                                disabled={!customStartDate || !customEndDate}
+                            >
+                                Apply
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Stats Cards */}

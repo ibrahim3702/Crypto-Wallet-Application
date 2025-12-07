@@ -14,6 +14,7 @@ export default function UTXOs() {
     const fetchUTXOs = async () => {
         try {
             const response = await walletAPI.getMyUTXOs();
+            console.log('UTXOs response:', response);
             setUtxos(response.data.utxos || []);
             setTotalBalance(response.data.total_balance || 0);
         } catch (error) {
@@ -67,7 +68,7 @@ export default function UTXOs() {
                                                 <Package className="w-5 h-5 text-white" />
                                             </div>
                                             <div>
-                                                <p className="text-white font-bold text-lg">{(utxo.value || 0).toFixed(2)} CW</p>
+                                                <p className="text-white font-bold text-lg">{(utxo.amount || 0).toFixed(2)} CW</p>
                                                 <p className="text-gray-400 text-sm">Output #{utxo.vout || 0}</p>
                                             </div>
                                         </div>
@@ -80,7 +81,7 @@ export default function UTXOs() {
 
                                             <div>
                                                 <span className="text-gray-400">Public Key Hash:</span>
-                                                <p className="text-white font-mono text-xs break-all mt-1">{utxo.pub_key_hash || utxo.pubKeyHash || 'N/A'}</p>
+                                                <p className="text-white font-mono text-xs break-all mt-1">{utxo.wallet_id || utxo.pubKeyHash || 'N/A'}</p>
                                             </div>
 
                                             {utxo.block_index !== undefined && (
@@ -90,13 +91,29 @@ export default function UTXOs() {
                                                 </div>
                                             )}
 
-                                            <div>
+                                            <div className="flex items-center gap-2">
                                                 <span className="text-gray-400">Status:</span>
-                                                <span className={`ml-2 px-2 py-1 rounded text-xs font-semibold ${utxo.is_spent ? 'bg-red-900/30 text-red-400' : 'bg-green-900/30 text-green-400'
-                                                    }`}>
-                                                    {utxo.is_spent ? 'Spent' : 'Unspent'}
-                                                </span>
+                                                {utxo.is_spent ? (
+                                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-red-900/30 text-red-400">
+                                                        Spent
+                                                    </span>
+                                                ) : utxo.is_locked ? (
+                                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-yellow-900/30 text-yellow-400">
+                                                        🔒 Locked (Pending Transaction)
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-green-900/30 text-green-400">
+                                                        ✓ Available
+                                                    </span>
+                                                )}
                                             </div>
+
+                                            {utxo.is_locked && utxo.locked_by && (
+                                                <div>
+                                                    <span className="text-gray-400">Locked by Transaction:</span>
+                                                    <p className="text-yellow-400 font-mono text-xs break-all mt-1">{utxo.locked_by}</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

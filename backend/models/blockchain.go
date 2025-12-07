@@ -81,6 +81,8 @@ type UTXO struct {
 	Amount     float64   `json:"amount" bson:"amount"`
 	IsSpent    bool      `json:"is_spent" bson:"is_spent"`
 	SpentInTx  string    `json:"spent_in_tx,omitempty" bson:"spent_in_tx,omitempty"`
+	IsLocked   bool      `json:"is_locked" bson:"is_locked"` // Locked for pending transactions
+	LockedBy   string    `json:"locked_by,omitempty" bson:"locked_by,omitempty"` // Pending transaction ID
 	BlockIndex int       `json:"block_index" bson:"block_index"`
 	CreatedAt  time.Time `json:"created_at" bson:"created_at"`
 }

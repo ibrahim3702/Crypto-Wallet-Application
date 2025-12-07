@@ -80,6 +80,8 @@ func MineBlock(c *gin.Context) {
 				"tx_id": ptx.Transaction.ID,
 				"error": err.Error(),
 			}, "error")
+			// Unlock UTXOs that were locked for this failed transaction
+			db.UnlockUTXOsByPendingTx(ptx.Transaction.ID)
 			// Mark as failed and continue
 			db.UpdatePendingTransactionStatus(ptx.ID, "failed")
 			continue
@@ -87,11 +89,8 @@ func MineBlock(c *gin.Context) {
 		transactions = append(transactions, ptx.Transaction)
 	}
 
-	// Check if there are any valid transactions to mine
-	if len(transactions) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No valid transactions to mine"})
-		return
-	}
+	// Allow mining even with 0 transactions (just coinbase/mining reward)
+	// This is useful for initial mining or when there are no pending transactions
 
 	// Create coinbase transaction (mining reward)
 	coinbaseTx := models.Transaction{
@@ -145,6 +144,9 @@ func MineBlock(c *gin.Context) {
 
 	// Process all transactions in the block
 	for _, tx := range transactions {
+		// Unlock UTXOs that were locked for this transaction (they'll be marked as spent instead)
+		db.UnlockUTXOsByPendingTx(tx.ID)
+
 		// Mark inputs as spent
 		for _, input := range tx.Vin {
 			db.MarkUTXOAsSpent(input.TxID, input.Vout, tx.ID)

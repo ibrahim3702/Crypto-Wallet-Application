@@ -150,6 +150,18 @@ func CreateTransaction(senderWalletID, receiverWalletID string, amount float64, 
 		return nil, err
 	}
 
+	// Lock the UTXOs to prevent double-spending in other pending transactions
+	err = blockchain.LockUTXOs(selectedUTXOs, txID)
+	if err != nil {
+		// If locking fails, remove the pending transaction
+		db.DeletePendingTransaction(txID)
+		LogSystemEvent("utxo_lock_failed", sender.ID, map[string]interface{}{
+			"tx_id": txID,
+			"error": err.Error(),
+		}, "error")
+		return nil, errors.New("failed to lock UTXOs: " + err.Error())
+	}
+
 	// Log the transaction
 	LogSystemEvent("transaction_created", sender.ID, map[string]interface{}{
 		"tx_id":    txID,

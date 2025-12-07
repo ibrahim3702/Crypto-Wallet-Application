@@ -293,6 +293,36 @@ func GetUTXO(txID string, vout int) (*models.UTXO, error) {
 	return &utxo, nil
 }
 
+// LockUTXO locks a UTXO for a pending transaction
+func LockUTXO(txID string, vout int, pendingTxID string) error {
+	_, err := UTXOsCollection.UpdateOne(
+		context.Background(),
+		bson.M{"tx_id": txID, "vout": vout, "is_spent": false, "is_locked": false},
+		bson.M{"$set": bson.M{"is_locked": true, "locked_by": pendingTxID}},
+	)
+	return err
+}
+
+// UnlockUTXO unlocks a UTXO (removes lock from pending transaction)
+func UnlockUTXO(txID string, vout int) error {
+	_, err := UTXOsCollection.UpdateOne(
+		context.Background(),
+		bson.M{"tx_id": txID, "vout": vout},
+		bson.M{"$set": bson.M{"is_locked": false}, "$unset": bson.M{"locked_by": ""}},
+	)
+	return err
+}
+
+// UnlockUTXOsByPendingTx unlocks all UTXOs locked by a specific pending transaction
+func UnlockUTXOsByPendingTx(pendingTxID string) error {
+	_, err := UTXOsCollection.UpdateMany(
+		context.Background(),
+		bson.M{"locked_by": pendingTxID},
+		bson.M{"$set": bson.M{"is_locked": false}, "$unset": bson.M{"locked_by": ""}},
+	)
+	return err
+}
+
 // Pending Transaction operations
 func AddPendingTransaction(ptx *models.PendingTransaction) error {
 	ptx.CreatedAt = time.Now()

@@ -46,7 +46,8 @@ func SelectUTXOs(walletID string, amount float64) ([]models.UTXO, float64, error
 	var total float64
 
 	for _, utxo := range utxos {
-		if !utxo.IsSpent {
+		// Only select UTXOs that are not spent AND not locked
+		if !utxo.IsSpent && !utxo.IsLocked {
 			selectedUTXOs = append(selectedUTXOs, utxo)
 			total += utxo.Amount
 
@@ -57,7 +58,7 @@ func SelectUTXOs(walletID string, amount float64) ([]models.UTXO, float64, error
 		}
 	}
 
-	return nil, 0, errors.New("insufficient balance")
+	return nil, 0, errors.New("insufficient balance - all available UTXOs are spent or locked in pending transactions")
 }
 
 // MarkUTXOsAsSpent marks selected UTXOs as spent in the database
@@ -84,6 +85,28 @@ func CreateUTXOsFromTransaction(tx models.Transaction, blockIndex int) error {
 		}
 		
 		err := db.CreateUTXO(&utxo)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// LockUTXOs locks selected UTXOs for a pending transaction
+func LockUTXOs(utxos []models.UTXO, pendingTxID string) error {
+	for _, utxo := range utxos {
+		err := db.LockUTXO(utxo.TxID, utxo.Vout, pendingTxID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// UnlockUTXOs unlocks UTXOs (used when transaction fails or is cancelled)
+func UnlockUTXOs(utxos []models.UTXO) error {
+	for _, utxo := range utxos {
+		err := db.UnlockUTXO(utxo.TxID, utxo.Vout)
 		if err != nil {
 			return err
 		}
