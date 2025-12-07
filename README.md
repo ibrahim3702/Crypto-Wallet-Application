@@ -1174,8 +1174,5 @@ For support, email ibrahimfaisal3702@gmail.com or open an issue on GitHub.
 - **Live Demo**: [https://crypto-wallet-application-a9pg.vercel.app](https://crypto-wallet-application-a9pg.vercel.app)
 - **Backend API**: [https://crypto-wallet-application.vercel.app](https://crypto-wallet-application.vercel.app)
 - **GitHub**: [https://github.com/ibrahim3702/Crypto-Wallet-Application](https://github.com/ibrahim3702/Crypto-Wallet-Application)
-- **Documentation**: [Research Article](./research-article.md)
 
 ---
-
-**Built with ❤️ by Ibrahim Faisal**
