@@ -323,3 +323,28 @@ func CreateTransactionLogs(tx models.Transaction, blockHash string, blockIndex i
 
 	return nil
 }
+
+// RecalculateUserBalance recalculates a user's balance based on their UTXOs
+func RecalculateUserBalance(walletID string) error {
+	user, err := db.GetUserByWalletID(walletID)
+	if err != nil {
+		return err
+	}
+
+	// Get all unspent UTXOs for this wallet
+	utxos, err := db.GetUTXOsByWalletID(walletID)
+	if err != nil {
+		return err
+	}
+
+	// Calculate total balance
+	var balance float64
+	for _, utxo := range utxos {
+		if !utxo.IsSpent {
+			balance += utxo.Amount
+		}
+	}
+
+	// Update user's balance
+	return db.UpdateUserBalance(user.ID, balance)
+}

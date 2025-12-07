@@ -22,6 +22,7 @@ type Config struct {
 	ZakatPercentage   float64
 	ZakatWalletID     string
 	AESEncryptionKey  string
+	GoogleClientID    string
 }
 
 var AppConfig *Config
@@ -49,6 +50,7 @@ func LoadConfig() {
 		ZakatPercentage:   zakatPercentage,
 		ZakatWalletID:     getEnv("ZAKAT_WALLET_ID", "zakat_pool_wallet"),
 		AESEncryptionKey:  getEnv("AES_ENCRYPTION_KEY", "change-this-32-char-key-prod!"),
+		GoogleClientID:    getEnv("GOOGLE_CLIENT_ID", ""),
 	}
 
 	if AppConfig.MongoDBURI == "" {

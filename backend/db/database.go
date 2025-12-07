@@ -504,3 +504,49 @@ func ValidateWalletExists(walletID string) error {
 	}
 	return nil
 }
+
+// DeleteBlocksFromIndex deletes all blocks from the specified index onwards
+func DeleteBlocksFromIndex(startIndex int) error {
+	_, err := BlocksCollection.DeleteMany(
+		context.Background(),
+		bson.M{"index": bson.M{"$gte": startIndex}},
+	)
+	return err
+}
+
+// DeleteUTXOsByTransactionID deletes all UTXOs created by a specific transaction
+func DeleteUTXOsByTransactionID(txID string) error {
+	_, err := UTXOsCollection.DeleteMany(
+		context.Background(),
+		bson.M{"tx_id": txID},
+	)
+	return err
+}
+
+// GetUTXOsByWalletID retrieves all UTXOs for a specific wallet
+func GetUTXOsByWalletID(walletID string) ([]models.UTXO, error) {
+	var utxos []models.UTXO
+	cursor, err := UTXOsCollection.Find(
+		context.Background(),
+		bson.M{"wallet_id": walletID, "is_spent": false},
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+	
+	if err = cursor.All(context.Background(), &utxos); err != nil {
+		return nil, err
+	}
+	return utxos, nil
+}
+
+// UpdateUserBalance updates a user's balance by their user ID
+func UpdateUserBalance(userID string, balance float64) error {
+	_, err := UsersCollection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": userID},
+		bson.M{"$set": bson.M{"balance": balance, "updated_at": time.Now()}},
+	)
+	return err
+}

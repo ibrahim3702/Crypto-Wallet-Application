@@ -103,7 +103,7 @@ export default function Dashboard() {
                         <div className="flex justify-between items-start mb-8 relative z-10">
                             <div>
                                 <p className="text-gray-400 text-sm mb-2">Total Balance</p>
-                                <h2 className="text-4xl font-bold text-white mb-1">{balance.toFixed(4)} BTC</h2>
+                                <h2 className="text-4xl font-bold text-white mb-1">{balance.toFixed(4)} CW</h2>
                                 <p className="text-gray-400 text-sm">${(balance * 50123.45).toFixed(2)} USD</p>
                             </div>
                             <div className="flex items-center text-emerald-300 text-sm bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/30">
@@ -191,7 +191,7 @@ export default function Dashboard() {
                                         </div>
                                         <div className="text-right">
                                             <p className={`font-semibold ${isReceived ? 'text-emerald-300' : 'text-red-300'}`}>
-                                                {isReceived ? '+' : ''}{Math.abs(tx.amount || 0).toFixed(2)} BTC
+                                                {isReceived ? '+' : ''}{Math.abs(tx.amount || 0).toFixed(2)} CW
                                             </p>
                                             <p className="text-gray-400 text-sm">
                                                 ${(Math.abs(tx.amount || 0) * 25001.72).toFixed(2)}

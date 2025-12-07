@@ -1,15 +1,18 @@
 package auth
 
 import (
+	"context"
 	"crypto-wallet/config"
 	"crypto-wallet/crypto"
 	"crypto-wallet/db"
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"google.golang.org/api/oauth2/v2"
 	"gopkg.in/gomail.v2"
 )
 
@@ -191,4 +194,56 @@ func ResendOTP(email string) error {
 
 	// Generate and send new OTP
 	return GenerateAndSendOTP(email)
+}
+
+// GoogleTokenPayload represents the payload from Google OAuth token
+type GoogleTokenPayload struct {
+	Sub           string `json:"sub"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+	Name          string `json:"name"`
+	Picture       string `json:"picture"`
+}
+
+// VerifyGoogleToken verifies the Google ID token and returns user info
+func VerifyGoogleToken(idToken string) (*GoogleTokenPayload, error) {
+	ctx := context.Background()
+	
+	// Use the tokeninfo endpoint to validate the token
+	oauth2Service, err := oauth2.NewService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create oauth2 service: %v", err)
+	}
+
+	tokenInfo, err := oauth2Service.Tokeninfo().IdToken(idToken).Context(ctx).Do()
+	if err != nil {
+		log.Printf("Error verifying Google token: %v", err)
+		return nil, fmt.Errorf("failed to verify token: %v", err)
+	}
+
+	// Verify the token is for our app
+	if tokenInfo.Audience != config.AppConfig.GoogleClientID {
+		log.Printf("Token audience mismatch. Expected: %s, Got: %s", config.AppConfig.GoogleClientID, tokenInfo.Audience)
+		return nil, errors.New("invalid token audience")
+	}
+
+	if !tokenInfo.VerifiedEmail {
+		return nil, errors.New("email not verified by Google")
+	}
+
+	// Extract name from email or use email as fallback
+	name := tokenInfo.Email
+	if atIndex := strings.Index(name, "@"); atIndex > 0 {
+		name = name[:atIndex]
+	}
+
+	payload := &GoogleTokenPayload{
+		Sub:           tokenInfo.UserId,
+		Email:         tokenInfo.Email,
+		EmailVerified: tokenInfo.VerifiedEmail,
+		Name:          name,
+	}
+
+	log.Printf("✅ Successfully verified Google token for: %s", tokenInfo.Email)
+	return payload, nil
 }

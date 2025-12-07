@@ -10,6 +10,9 @@ import Blockchain from './pages/Blockchain';
 import Profile from './pages/Profile';
 import Reports from './pages/Reports';
 import UTXOs from './pages/UTXOs';
+import SystemLogs from './pages/SystemLogs';
+import WalletDetails from './pages/WalletDetails';
+import ValidateBlockchain from './pages/ValidateBlockchain';
 import './index.css';
 
 const PrivateRoute = ({ children }) => {
@@ -35,6 +38,9 @@ function AppContent() {
                     <Route path="/utxos" element={<PrivateRoute><UTXOs /></PrivateRoute>} />
                     <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
                     <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
+                    <Route path="/system-logs" element={<PrivateRoute><SystemLogs /></PrivateRoute>} />
+                    <Route path="/wallet-details" element={<PrivateRoute><WalletDetails /></PrivateRoute>} />
+                    <Route path="/validate-blockchain" element={<PrivateRoute><ValidateBlockchain /></PrivateRoute>} />
 
                     <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
                 </Routes>

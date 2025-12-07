@@ -48,13 +48,15 @@ type User struct {
 	ID                string    `json:"id" bson:"_id,omitempty"`
 	FullName          string    `json:"full_name" bson:"full_name"`
 	Email             string    `json:"email" bson:"email"`
-	CNIC              string    `json:"cnic" bson:"cnic"`
+	CNIC              string    `json:"cnic,omitempty" bson:"cnic,omitempty"`
 	WalletID          string    `json:"wallet_id" bson:"wallet_id"`
 	PublicKey         string    `json:"public_key" bson:"public_key"`
 	EncryptedPrivateKey string  `json:"-" bson:"encrypted_private_key"` // Never send in JSON
 	IsEmailVerified   bool      `json:"is_email_verified" bson:"is_email_verified"`
 	OTP               string    `json:"-" bson:"otp,omitempty"` // Hashed OTP
 	OTPExpiry         time.Time `json:"-" bson:"otp_expiry,omitempty"`
+	GoogleID          string    `json:"google_id,omitempty" bson:"google_id,omitempty"` // Google OAuth ID
+	AuthProvider      string    `json:"auth_provider" bson:"auth_provider"` // "email" or "google"
 	Beneficiaries     []string  `json:"beneficiaries" bson:"beneficiaries"` // List of wallet IDs
 	CreatedAt         time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt         time.Time `json:"updated_at" bson:"updated_at"`
@@ -161,6 +163,11 @@ type LoginRequest struct {
 type VerifyOTPRequest struct {
 	Email string `json:"email" binding:"required,email"`
 	OTP   string `json:"otp" binding:"required"`
+}
+
+// GoogleLoginRequest represents Google OAuth login
+type GoogleLoginRequest struct {
+	Token string `json:"token" binding:"required"` // Google ID token
 }
 
 // UpdateProfileRequest represents profile update

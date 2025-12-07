@@ -24,6 +24,7 @@ export const authAPI = {
     login: (data) => api.post('/auth/login', data),
     verifyOTP: (data) => api.post('/auth/verify-otp', data),
     resendOTP: (data) => api.post('/auth/resend-otp', data),
+    googleLogin: (data) => api.post('/auth/google-login', data),
 };
 
 // User APIs
@@ -62,6 +63,7 @@ export const blockchainAPI = {
     getLatest: () => api.get('/blockchain/latest'),
     getStats: () => api.get('/blockchain/stats'),
     validate: () => api.get('/blockchain/validate'),
+    validateAndRevert: () => api.post('/blockchain/validate-and-revert'),
     mine: () => api.post('/mining/mine'),
 };
 

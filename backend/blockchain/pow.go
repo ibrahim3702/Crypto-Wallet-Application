@@ -111,3 +111,39 @@ func ValidateChain(blocks []models.Block) bool {
 
 	return true
 }
+
+// ValidateChainWithDetails validates the blockchain and returns the first problematic block index
+// Returns -1 if chain is valid, otherwise returns the index of the first invalid block
+func ValidateChainWithDetails(blocks []models.Block) (bool, int, string) {
+	if len(blocks) == 0 {
+		return false, -1, "Blockchain is empty"
+	}
+
+	// Skip genesis block (index 0)
+	for i := 1; i < len(blocks); i++ {
+		if !ValidateBlock(blocks[i], blocks[i-1]) {
+			reason := ""
+			
+			// Determine the specific reason for failure
+			if blocks[i].Index != blocks[i-1].Index+1 {
+				reason = fmt.Sprintf("Invalid index: expected %d, got %d", blocks[i-1].Index+1, blocks[i].Index)
+			} else if blocks[i].PrevHash != blocks[i-1].Hash {
+				reason = "Previous hash mismatch"
+			} else {
+				calculatedHash := CalculateHash(blocks[i])
+				if calculatedHash != blocks[i].Hash {
+					reason = "Hash mismatch - block has been tampered with"
+				} else {
+					target := strings.Repeat("0", blocks[i].Difficulty)
+					if !strings.HasPrefix(blocks[i].Hash, target) {
+						reason = "Proof of work validation failed"
+					}
+				}
+			}
+			
+			return false, i, reason
+		}
+	}
+
+	return true, -1, "Blockchain is valid"
+}

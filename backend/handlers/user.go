@@ -7,6 +7,7 @@ import (
 	"crypto-wallet/middleware"
 	"crypto-wallet/models"
 	"crypto-wallet/services"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -206,6 +207,128 @@ func ResendOTP(c *gin.Context) {
 	services.LogOTPGenerated(req.Email, ipAddress)
 
 	c.JSON(http.StatusOK, gin.H{"message": "OTP resent successfully"})
+}
+
+// GoogleLogin handles Google OAuth login
+func GoogleLogin(c *gin.Context) {
+	var req models.GoogleLoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ipAddress := middleware.GetClientIP(c)
+
+	// Verify Google token
+	payload, err := auth.VerifyGoogleToken(req.Token)
+	if err != nil {
+		log.Printf("Google token verification failed: %v", err)
+		services.LogFailedLogin("unknown", ipAddress, "invalid Google token")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Google token", "details": err.Error()})
+		return
+	}
+
+	email := payload.Email
+	googleID := payload.Sub
+	fullName := payload.Name
+
+	// Check if user exists
+	user, err := db.GetUserByEmail(email)
+	
+	if err != nil {
+		// User doesn't exist, create new user with Google OAuth
+		privateKey, publicKey, err := crypto.GenerateKeyPair()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate keys"})
+			return
+		}
+
+		privateKeyStr := crypto.PrivateKeyToString(privateKey)
+		publicKeyStr, err := crypto.PublicKeyToString(publicKey)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to convert public key"})
+			return
+		}
+
+		walletID := crypto.GenerateWalletID(publicKeyStr)
+
+		// For Google users, encrypt private key with Google ID
+		encryptedPrivateKey, err := crypto.EncryptPrivateKey(privateKeyStr, googleID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to encrypt private key"})
+			return
+		}
+
+		// Create new user
+		user = &models.User{
+			FullName:            fullName,
+			Email:               email,
+			GoogleID:            googleID,
+			AuthProvider:        "google",
+			WalletID:            walletID,
+			PublicKey:           publicKeyStr,
+			EncryptedPrivateKey: encryptedPrivateKey,
+			IsEmailVerified:     true, // Google emails are already verified
+			Beneficiaries:       []string{},
+		}
+
+		err = db.CreateUser(user)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+			return
+		}
+
+		// Create wallet
+		wallet := models.Wallet{
+			WalletID:  walletID,
+			UserID:    user.ID,
+			PublicKey: publicKeyStr,
+			Balance:   0.0,
+		}
+
+		err = db.CreateWallet(&wallet)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create wallet"})
+			return
+		}
+
+		services.LogSignup(user.ID, user.Email, ipAddress)
+	} else {
+		// User exists, update Google ID if not set
+		if user.GoogleID == "" {
+			user.GoogleID = googleID
+			user.AuthProvider = "google"
+			err = db.UpdateUser(user.ID, bson.M{
+				"google_id":     googleID,
+				"auth_provider": "google",
+			})
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+				return
+			}
+		}
+	}
+
+	// Generate JWT token
+	token, err := auth.GenerateJWT(user.Email, user.WalletID, user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	services.LogLogin(user.ID, user.Email, ipAddress)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"token":   token,
+		"user": gin.H{
+			"id":         user.ID,
+			"full_name":  user.FullName,
+			"email":      user.Email,
+			"wallet_id":  user.WalletID,
+			"public_key": user.PublicKey,
+		},
+	})
 }
 
 // GetProfile returns the authenticated user's profile

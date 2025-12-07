@@ -90,3 +90,37 @@ body::before {
         @apply bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl shadow-xl shadow-black/30;
     }
 }
+
+/* Google Login Button Styling */
+.google-login-wrapper {
+    @apply w-full;
+}
+
+.google-login-wrapper > div {
+    @apply w-full flex justify-center;
+}
+
+.google-login-wrapper > div > div {
+    @apply w-full !important;
+}
+
+/* Style the Google button container */
+.google-login-wrapper [data-theme] {
+    @apply w-full !important;
+}
+
+/* Custom styling for Google button */
+.google-login-wrapper iframe {
+    filter: hue-rotate(0deg) brightness(0.95) !important;
+    border-radius: 0.75rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.2s !important;
+    backdrop-filter: blur(12px) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.google-login-wrapper:hover iframe {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.4), 0 3px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}

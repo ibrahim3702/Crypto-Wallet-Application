@@ -57,6 +57,7 @@ func main() {
 			auth.POST("/login", handlers.Login)
 			auth.POST("/verify-otp", handlers.VerifyOTP)
 			auth.POST("/resend-otp", handlers.ResendOTP)
+			auth.POST("/google-login", handlers.GoogleLogin)
 		}
 
 		// Public blockchain routes
@@ -66,6 +67,7 @@ func main() {
 			blockchain.GET("/block/:index", handlers.GetBlockByIndex)
 			blockchain.GET("/latest", handlers.GetLatestBlock)
 			blockchain.GET("/validate", handlers.ValidateBlockchain)
+			blockchain.POST("/validate-and-revert", handlers.ValidateAndRevertBlockchain)
 			blockchain.GET("/stats", handlers.GetBlockchainStats)
 		}
 

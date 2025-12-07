@@ -1,14 +1,49 @@
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import { Wallet, LogOut, User, Send, Clock, BarChart3, Blocks, Package, BadgeDollarSign } from 'lucide-react';
+import { Wallet, LogOut, User, Send, Clock, BarChart3, Blocks, Package, BadgeDollarSign, ChevronDown, Shield, FileText, Info } from 'lucide-react';
 
 export default function Navbar() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        };
+
+        if (showDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showDropdown]);
 
     const handleLogout = () => {
         logout();
         navigate('/login');
+    };
+
+    const handleValidateBlockchain = () => {
+        setShowDropdown(false);
+        navigate('/validate-blockchain');
+    };
+
+    const handleViewLogs = () => {
+        setShowDropdown(false);
+        navigate('/system-logs');
+    };
+
+    const handleViewWallet = () => {
+        setShowDropdown(false);
+        navigate('/wallet-details');
     };
 
     return (
@@ -44,6 +79,52 @@ export default function Navbar() {
                                     <span>{label}</span>
                                 </Link>
                             ))}
+
+                            {/* More Options Dropdown */}
+                            <div className="relative" ref={dropdownRef}>
+                                <button
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10 transition"
+                                >
+                                    <span>More</span>
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {showDropdown && (
+                                    <div className="absolute top-full mt-2 right-0 w-56 backdrop-blur-xl bg-[#1a1a2e]/95 border border-white/20 rounded-xl py-1 shadow-2xl z-50">
+                                        <button
+                                            onClick={handleValidateBlockchain}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-gray-300 hover:text-white hover:bg-white/10 transition"
+                                        >
+                                            <Shield className="w-4 h-4" />
+                                            <div>
+                                                <p className="font-medium text-sm">Validate Blockchain</p>
+                                                <p className="text-[10px] text-gray-400">Check integrity & revert</p>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={handleViewLogs}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-gray-300 hover:text-white hover:bg-white/10 transition"
+                                        >
+                                            <FileText className="w-4 h-4" />
+                                            <div>
+                                                <p className="font-medium text-sm">View Logs</p>
+                                                <p className="text-[10px] text-gray-400">System activity</p>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={handleViewWallet}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-gray-300 hover:text-white hover:bg-white/10 transition"
+                                        >
+                                            <Info className="w-4 h-4" />
+                                            <div>
+                                                <p className="font-medium text-sm">Wallet Details</p>
+                                                <p className="text-[10px] text-gray-400">Complete info</p>
+                                            </div>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 

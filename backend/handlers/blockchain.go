@@ -197,6 +197,115 @@ func ValidateBlockchain(c *gin.Context) {
 	})
 }
 
+// ValidateAndRevertBlockchain validates the blockchain and reverts problematic blocks if found
+func ValidateAndRevertBlockchain(c *gin.Context) {
+	blocks, err := db.GetAllBlocks()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get blockchain"})
+		return
+	}
+
+	isValid, problematicIndex, reason := blockchain.ValidateChainWithDetails(blocks)
+
+	if isValid {
+		c.JSON(http.StatusOK, gin.H{
+			"valid":   true,
+			"message": "Blockchain is valid",
+			"blocks":  len(blocks),
+		})
+		return
+	}
+
+	// Blockchain is invalid - revert from the problematic block onwards
+	revertedCount := len(blocks) - problematicIndex
+	var revertedTransactions []models.Transaction
+
+	// Collect all transactions from blocks being reverted
+	for i := problematicIndex; i < len(blocks); i++ {
+		revertedTransactions = append(revertedTransactions, blocks[i].Transactions...)
+	}
+
+	// Delete blocks from problematic index onwards
+	err = db.DeleteBlocksFromIndex(problematicIndex)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to revert blockchain",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Unlock UTXOs and restore balances
+	for _, tx := range revertedTransactions {
+		// Skip genesis/mining rewards - they have empty Vin (inputs)
+		if len(tx.Vin) > 0 {
+			// Re-add UTXOs for inputs that were spent in this transaction
+			for _, input := range tx.Vin {
+				// Recreate the UTXO that was consumed
+				utxo := &models.UTXO{
+					TxID:     input.TxID,
+					Vout:     input.Vout,
+					WalletID: tx.SenderID, // The sender owned this UTXO
+					IsSpent:  false,
+					IsLocked: false,
+				}
+				// Note: We can't recover the exact amount from just the input
+				// The UTXO system will be recalculated from the remaining valid blocks
+				db.CreateUTXO(utxo)
+			}
+		}
+
+		// Remove UTXOs created by outputs in this transaction
+		db.DeleteUTXOsByTransactionID(tx.ID)
+
+		// Update balances for affected wallets
+		if tx.SenderID != "" {
+			services.RecalculateUserBalance(tx.SenderID)
+		}
+		if tx.ReceiverID != "" {
+			services.RecalculateUserBalance(tx.ReceiverID)
+		}
+	}
+
+	// Move transactions back to pending (except genesis/mining rewards)
+	for _, tx := range revertedTransactions {
+		if tx.SenderID != "" && len(tx.Vin) > 0 {
+			// Only add back non-mining transactions
+			pendingTx := &models.PendingTransaction{
+				ID:          tx.ID,
+				Transaction: tx,
+				CreatedAt:   time.Now(),
+				Status:      "pending",
+			}
+			db.AddPendingTransaction(pendingTx)
+		}
+	}
+
+	// Log the revert action
+	db.CreateSystemLog(&models.SystemLog{
+		Event:    "blockchain_revert",
+		Details: map[string]interface{}{
+			"reverted_blocks":       revertedCount,
+			"problematic_index":     problematicIndex,
+			"reason":                reason,
+			"reverted_transactions": len(revertedTransactions),
+		},
+		Severity: "warning",
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"valid":                 false,
+		"reverted":              true,
+		"problematic_index":     problematicIndex,
+		"reason":                reason,
+		"reverted_blocks":       revertedCount,
+		"reverted_transactions": len(revertedTransactions),
+		"restored_to_pending":   len(revertedTransactions),
+		"remaining_blocks":      problematicIndex,
+		"message":               fmt.Sprintf("Blockchain was invalid. Reverted %d blocks and restored transactions to pending pool.", revertedCount),
+	})
+}
+
 // GetBlockchainStats returns statistics about the blockchain
 func GetBlockchainStats(c *gin.Context) {
 	blocks, err := db.GetAllBlocks()
