@@ -385,8 +385,8 @@ export default function Reports() {
                             <button
                                 key={range.value}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${timeRange === range.value
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-[#252b42] text-gray-400 hover:bg-[#2d3349]'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-[#252b42] text-gray-400 hover:bg-[#2d3349]'
                                     }`}
                                 onClick={() => handleTimeRangeChange(range.value)}
                             >
